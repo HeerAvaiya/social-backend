@@ -1,0 +1,26 @@
+# Node modules (do NOT upload to GitHub)
+node_modules/
+
+# dotenv environment file (keeps secrets safe)
+.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Build/temp files
+dist/
+build/
+tmp/
+*.bak
+
+# Optional: MongoDB data dump
+dump/
