@@ -1,5 +1,6 @@
 import express from "express";
 import Post from "../models/Post.js";
+import User from "../models/User.js"; // ✅ Add this
 import authMiddleware from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 
@@ -14,6 +15,11 @@ router.post("/", authMiddleware, upload.single("imageUrl"), async (req, res) => 
         });
 
         await newPost.save();
+
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: { postCount: 1 }
+        });
+
         res.status(201).json({ message: "Post created", post: newPost });
     } catch (err) {
         res.status(500).json({ message: "Error creating post", error: err.message });
@@ -90,6 +96,27 @@ router.get("/mine", authMiddleware, async (req, res) => {
         res.status(200).json(myPosts);
     } catch (err) {
         res.status(500).json({ message: "Error fetching your posts", error: err.message });
+    }
+});
+
+router.delete("/:id", authMiddleware, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: "Post not found" });
+
+        if (post.createdBy.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        await post.deleteOne();
+
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: { postCount: -1 }
+        });
+
+        res.status(200).json({ message: "Post deleted and count updated" });
+    } catch (err) {
+        res.status(500).json({ message: "Failed to delete post", error: err.message });
     }
 });
 

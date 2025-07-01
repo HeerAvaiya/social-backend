@@ -11,7 +11,12 @@ const router = express.Router();
 router.get("/me", authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select("-password");
-        res.status(200).json(user);
+        const postCount = await Post.countDocuments({ createdBy: user._id });
+        res.status(200).json({
+            user,
+            postCount
+        });
+
     } catch (err) {
         res.status(500).json({ message: "Error fetching profile", error: err.message });
     }
@@ -34,6 +39,43 @@ router.put("/me", authMiddleware, async (req, res) => {
         res.status(500).json({ message: "Update failed", error: err.message });
     }
 });
+
+router.put("/:id/follow", authMiddleware, async (req, res) => {
+    const targetUserId = req.params.id;
+    const currentUserId = req.user._id;
+
+    if (targetUserId === currentUserId.toString()) {
+        return res.status(400).json({ message: "You cannot follow yourself" });
+    }
+
+    try {
+        const targetUser = await User.findById(targetUserId);
+        const currentUser = await User.findById(currentUserId);
+
+        if (!targetUser || !currentUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const isFollowing = targetUser.followers.includes(currentUserId);
+
+        if (isFollowing) {
+            targetUser.followers.pull(currentUserId);
+            currentUser.following.pull(targetUserId);
+            await targetUser.save();
+            await currentUser.save();
+            return res.status(200).json({ message: "Unfollowed the user" });
+        } else {
+            targetUser.followers.push(currentUserId);
+            currentUser.following.push(targetUserId);
+            await targetUser.save();
+            await currentUser.save();
+            return res.status(200).json({ message: "Followed the user" });
+        }
+    } catch (err) {
+        return res.status(500).json({ message: "Follow/unfollow failed", error: err.message });
+    }
+});
+
 
 router.put("/me/profile-pic", authMiddleware, uploadProfilePic, async (req, res) => {
     try {
@@ -64,6 +106,16 @@ router.delete("/me", authMiddleware, async (req, res) => {
         await Post.updateMany({ likes: userId }, { $pull: { likes: userId } });
         await Post.updateMany({}, { $pull: { comments: { user: userId } } });
 
+        await User.updateMany(
+            { followers: userId },
+            { $pull: { followers: userId } }
+        );
+
+        await User.updateMany(
+            { following: userId },
+            { $pull: { following: userId } }
+        );
+
         const user = await User.findById(userId);
         if (user?.profilePic && fs.existsSync(user.profilePic)) {
             fs.unlinkSync(user.profilePic);
@@ -71,11 +123,12 @@ router.delete("/me", authMiddleware, async (req, res) => {
 
         await User.findByIdAndDelete(userId);
 
-        res.status(200).json({ message: "User and data deleted" });
+        res.status(200).json({ message: "User and data deleted successfully" });
     } catch (err) {
         res.status(500).json({ message: "Deletion failed", error: err.message });
     }
 });
+
 
 router.post("/logout", authMiddleware, (req, res) => {
     res.status(200).json({ message: "Logged out successfully. Please remove token from client side." });

@@ -7,7 +7,7 @@ const postSchema = new mongoose.Schema({
     },
     imageUrl: {
         type: String,
-        required: true // Local file path
+        required: true
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

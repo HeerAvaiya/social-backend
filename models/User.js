@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: ""
         },
-        profilePic: { // ✅ New field for storing uploaded profile image path
+        profilePic: {
             type: String,
             default: ""
         },
@@ -38,24 +38,20 @@ const userSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         }],
-        followRequests: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        }],
         lastLogin: {
             type: Date
         },
         loginCount: {
             type: Number,
             default: 0
-        }
+        },
+        postCount: { type: Number, default: 0 }
     },
     {
         timestamps: true
     }
 );
 
-// 🔐 Automatically hash password before saving
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
     this.password = await bcrypt.hash(this.password, 12);
@@ -63,3 +59,7 @@ userSchema.pre("save", async function (next) {
 });
 
 export default mongoose.model("User", userSchema);
+
+
+
+
