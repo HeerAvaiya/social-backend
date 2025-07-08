@@ -1,4 +1,3 @@
-
 import Handler from "../utils/handler.js";
 import userService from "../services/user.service.js";
 import followerService from "../services/follower.service.js";
