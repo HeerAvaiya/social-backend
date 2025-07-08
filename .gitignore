@@ -1,0 +1,43 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables
+.env
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploaded files (optional: keep this if you upload to cloud instead)
+uploads/
+
+# Coverage and build
+coverage/
+build/
+dist/
+
+# VS Code settings
+.vscode/
+
+# Optional: Sequelize CLI generated folders
+migrations/
+seeders/
+models/index.js
