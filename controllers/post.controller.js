@@ -49,6 +49,67 @@ export const createPostController = async (req, res) => {
 
 
 
+export const updatePostImageController = async (req, res) => {
+    let tempPublicId = null;
+
+    try {
+        const { postId } = req.params;
+        const { caption } = req.body;
+        const userId = req.user.id;
+
+        const post = await postService.getPostById(postId);
+        if (!post) return res.status(404).json({ error: "Post not found" });
+        if (post.createdBy !== userId)
+            return res.status(403).json({ error: "You are not authorized to update this post" });
+
+        if (!req.file) return res.status(400).json({ error: "Image file is required" });
+
+        // ✅ STEP 1: DELETE old image from Cloudinary
+        if (post.cloudinaryPublicId) {
+            await cloudinary.uploader.destroy(post.cloudinaryPublicId);
+        }
+
+        // ✅ STEP 2: Upload new image to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: "social_posts",
+        });
+
+        tempPublicId = result.public_id;
+
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        // ✅ STEP 3: Update DB with image and caption
+        const updatedPost = await postService.updatePostImage(postId, {
+            imageUrl: result.secure_url,
+            cloudinaryPublicId: result.public_id,
+            caption: caption ?? post.caption,
+        });
+
+        res.status(200).json({
+            message: "Post image and caption updated successfully",
+            post: updatedPost,
+        });
+    } catch (error) {
+        // ⚠️ Rollback if DB fails
+        if (tempPublicId) {
+            try {
+                await cloudinary.uploader.destroy(tempPublicId);
+            } catch (e) {
+                console.error("Cloudinary rollback failed:", e.message);
+            }
+        }
+
+        console.error("Post image update error:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+
+
 
 // Get Post with Likes
 export const getPostWithLikesController = Handler(async (req, res) => {

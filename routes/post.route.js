@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     createPostController,
+    updatePostImageController,
     getPostWithLikesController,
     toggleLikeController,
     getPostLikesController,
@@ -17,6 +18,7 @@ const postRouter = Router();
 // Posts
 postRouter.post("/", authMiddleware, upload.single("image"), createPostController);
 postRouter.get("/:id", authMiddleware, getPostWithLikesController);
+postRouter.put('/:postId/image', authMiddleware, upload.single("image"), updatePostImageController);
 
 // Likes
 postRouter.post("/:postId/like", authMiddleware, toggleLikeController);
@@ -29,4 +31,3 @@ postRouter.delete("/comments/:commentId", authMiddleware, deleteCommentControlle
 postRouter.get("/:postId/comments", authMiddleware, getPostCommentsController);
 
 export default postRouter;
-    
