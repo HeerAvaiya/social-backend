@@ -1,27 +1,22 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
-import User from './User.js';
 
 const Post = sequelize.define('Post', {
     caption: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    imageUrl: { 
+    imageUrl: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    cloudinaryPublicId: { 
+    cloudinaryPublicId: {
         type: DataTypes.STRING,
         allowNull: false,
     },
     createdBy: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-            model: User,
-            key: 'id'
-        }
     },
     likesCount: {
         type: DataTypes.INTEGER,

@@ -107,8 +107,43 @@ export const updatePostImageController = async (req, res) => {
 };
 
 
+// Get all Post
+export const getAllPostsController = Handler(async (req, res) => {
+    const posts = await postService.getAllPosts();
+    res.status(200).json({ success: true, data: posts });
+});
 
 
+
+export const getUserPostsController = Handler(async (req, res) => {
+    const userId = req.params.userId;
+    const posts = await postService.getPostsByUserId(userId);
+    res.status(200).json({ success: true, data: posts });
+});
+
+
+export const deletePostController = Handler(async (req, res) => {
+    const userId = req.user.id;
+    const postId = req.params.postId;
+
+    const post = await postService.getPostById(postId);
+    if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+    }
+
+    if (post.createdBy !== userId) {
+        return res.status(403).json({ error: "You are not authorized to delete this post" });
+    }
+
+    // Delete image from Cloudinary
+    if (post.cloudinaryPublicId) {
+        await cloudinary.uploader.destroy(post.cloudinaryPublicId);
+    }
+
+    await postService.deletePost(postId);
+
+    res.status(200).json({ message: "Post deleted successfully" });
+});
 
 
 // Get Post with Likes

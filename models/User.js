@@ -20,7 +20,11 @@ const User = sequelize.define('User', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    profilePicture: {
+    profileImageUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    cloudinaryPublicId: {
         type: DataTypes.STRING,
         allowNull: true,
     },

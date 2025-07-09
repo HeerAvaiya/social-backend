@@ -6,7 +6,6 @@ import User from "../models/User.js";
 const createPost = async ({ createdBy, caption, imageUrl, cloudinaryPublicId }) => {
     console.log("Creating post with:", { createdBy, caption, imageUrl, cloudinaryPublicId });
 
-    // Check if user exists
     const user = await User.findByPk(createdBy);
     if (!user) {
         throw new Error("User does not exist");
@@ -33,15 +32,40 @@ const updatePostImage = async (postId, { imageUrl, cloudinaryPublicId, caption }
     // Update all fields passed
     if (imageUrl) post.imageUrl = imageUrl;
     if (cloudinaryPublicId) post.cloudinaryPublicId = cloudinaryPublicId;
-    if (caption !== undefined) post.caption = caption; // allow clearing caption too
+    if (caption !== undefined) post.caption = caption;
 
     await post.save();
     return post;
 };
 
 
+const getAllPosts = async () => {
+    return await Post.findAll({
+        include: {
+            model: User,
+            as: 'creator',
+            attributes: ['id', 'username', 'email', 'profileImageUrl']
+        },
+        order: [['createdAt', 'DESC']]
+    });
+};
+
+const getPostsByUserId = async (userId) => {
+    return await Post.findAll({
+        where: { createdBy: userId },
+        include: {
+            model: User,
+            as:'creator',
+            attributes: ['id', 'username', 'email', 'profileImageUrl']
+        },
+        order: [["createdAt", "DESC"]],
+    });
+};
 
 
+const deletePost = async (postId) => {
+    return await Post.destroy({ where: { id: postId } });
+};
 
 
 const getPostWithLikes = async (postId) => {
@@ -148,6 +172,9 @@ export default {
     createPost,
     getPostById,
     updatePostImage,
+    getAllPosts,
+    getPostsByUserId,
+    deletePost,
     getPostWithLikes,
     toggleLike,
     getUsersWhoLikedPost,
@@ -156,3 +183,4 @@ export default {
     deleteComment,
     getCommentsByPost
 };
+

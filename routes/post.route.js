@@ -3,6 +3,9 @@ import {
     createPostController,
     updatePostImageController,
     getPostWithLikesController,
+    getAllPostsController,
+    getUserPostsController,
+    deletePostController,
     toggleLikeController,
     getPostLikesController,
     createCommentController,
@@ -19,6 +22,9 @@ const postRouter = Router();
 postRouter.post("/", authMiddleware, upload.single("image"), createPostController);
 postRouter.get("/:id", authMiddleware, getPostWithLikesController);
 postRouter.put('/:postId/image', authMiddleware, upload.single("image"), updatePostImageController);
+postRouter.get("/", authMiddleware, getAllPostsController);
+postRouter.get("/user/:userId", authMiddleware, getUserPostsController);
+postRouter.delete("/:postId", authMiddleware, deletePostController);
 
 // Likes
 postRouter.post("/:postId/like", authMiddleware, toggleLikeController);

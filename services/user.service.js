@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import Follower from "../models/Followers.js";
 import sendEmail from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";    
+import bcrypt from "bcrypt";
 
 
 // USER
@@ -18,9 +18,23 @@ const updateUser = async (id, userBody) => {
     return await findUser({ id });
 };
 
+const getUserById = async (userId) => {
+    return await User.findByPk(userId);
+};
+
+const updateUserProfileImage = async (userId, data) => {
+    const user = await User.findByPk(userId);
+    if (!user) throw new Error("User not found");
+
+    user.profileImageUrl = data.profileImageUrl;
+    user.cloudinaryPublicId = data.cloudinaryPublicId;
+
+    await user.save();
+    return user;
+};
+
 
 // FOLLOWER 
-
 
 const sendFollowRequest = async (followerId, userId) => {
     if (Number(followerId) === Number(userId)) {
@@ -107,6 +121,8 @@ const resetPassword = async (token, newPassword) => {
 export default {
     findUser,
     updateUser,
+    getUserById,
+    updateUserProfileImage,
     sendFollowRequest,
     respondToRequest,
     unfollowUser,

@@ -1,10 +1,14 @@
 import { Router } from "express";
+import upload from "../utils/upload.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import {
     // User Profile
     getUserMeController,
     updateUserMeController,
     deleteUserMeController,
+    createProfileImageController,
+    updateProfileImageController,
+    deleteProfileImageController,
     togglePrivacyController,
     forgotPasswordController,
     resetPasswordController,
@@ -25,6 +29,10 @@ userRouter.get("/me", authMiddleware, getUserMeController);
 userRouter.put("/me", authMiddleware, updateUserMeController);
 userRouter.put("/me/privacy", authMiddleware, togglePrivacyController);
 userRouter.delete("/me", authMiddleware, deleteUserMeController);
+userRouter.post("/profile/image", authMiddleware, upload.single("image"), createProfileImageController);
+userRouter.put("/profile/image", authMiddleware, upload.single("image"), updateProfileImageController);
+userRouter.delete("/profile/image", authMiddleware, deleteProfileImageController);
+
 
 // Follow System Routes
 userRouter.post("/:userId/follow", authMiddleware, sendFollowRequestController);

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import Handler from "../utils/handler.js";
-import User from "../models/User.js"; // ✅ Import User model
+import User from "../models/User.js";
 
 const authMiddleware = Handler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -18,13 +18,11 @@ const authMiddleware = Handler(async (req, res, next) => {
             return res.status(403).json({ error: true, message: "Forbidden: Invalid token" });
         }
 
-        // ✅ Fetch user from DB
         const user = await User.findByPk(decoded.id);
         if (!user) {
             return res.status(404).json({ error: true, message: "User not found" });
         }
 
-        // ✅ Attach clean user object to req
         req.user = {
             id: user.id,
             username: user.username,
