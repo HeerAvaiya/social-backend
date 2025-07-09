@@ -29,3 +29,4 @@ postRouter.delete("/comments/:commentId", authMiddleware, deleteCommentControlle
 postRouter.get("/:postId/comments", authMiddleware, getPostCommentsController);
 
 export default postRouter;
+    

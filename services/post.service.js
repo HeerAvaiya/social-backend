@@ -6,6 +6,12 @@ import User from "../models/User.js";
 const createPost = async ({ createdBy, caption, imageUrl, cloudinaryPublicId }) => {
     console.log("Creating post with:", { createdBy, caption, imageUrl, cloudinaryPublicId });
 
+ // ✅ Check if user exists
+    const user = await User.findByPk(createdBy);
+    if (!user) {
+        throw new Error("User does not exist");
+    }
+
     return await Post.create({
         createdBy,
         caption,

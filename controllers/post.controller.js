@@ -1,36 +1,54 @@
 import Handler from "../utils/handler.js";
 import cloudinary from "../utils/cloudinary.js";
 import postService from "../services/post.service.js";
+import fs from "fs";
 
-export const createPostController = Handler(async (req, res) => {
-    const createdBy = req.user.id;
-    const { caption } = req.body;
 
-    if (!req.file?.path) {
-        throw new Error("Image file is required");
+
+// Create Post
+export const createPostController = async (req, res) => {
+    try {
+        const { caption } = req.body;
+        const createdBy = req.user.id;
+
+        if (!req.file) {
+            return res.status(400).json({ error: "Image is required" });
+        }
+
+        // Upload to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: "social_posts"
+        });
+
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        const imageUrl = result.secure_url;
+        const cloudinaryPublicId = result.public_id;
+
+        // Save post to DB
+        const newPost = await postService.createPost({
+            createdBy,
+            caption,
+            imageUrl,
+            cloudinaryPublicId
+        });
+
+        res.status(201).json({
+            message: "Post created successfully",
+            post: newPost
+        });
+    } catch (error) {
+        console.error("Post creation error:", error);
+        res.status(500).json({
+            error: error.message || "Internal server error"
+        });
     }
+};
 
-    const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "social_posts",
-    });
 
-    if (!result?.secure_url || !result?.public_id) {
-        throw new Error("Cloudinary upload failed");
-    }
 
-    const newPost = await postService.createPost({
-        createdBy,
-        caption,
-        imageUrl: result.secure_url,
-        cloudinaryPublicId: result.public_id,
-    });
-
-    res.status(201).json({
-        error: false,
-        message: "Post created successfully",
-        data: newPost,
-    });
-});
 
 // Get Post with Likes
 export const getPostWithLikesController = Handler(async (req, res) => {
