@@ -1,33 +1,28 @@
-
 import { Router } from "express";
-import upload from "../utils/upload.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
 import {
     createPostController,
     getPostWithLikesController,
-
-    // Comment controllers
+    toggleLikeController,
+    getPostLikesController,
     createCommentController,
     updateCommentController,
     deleteCommentController,
-    getPostCommentsController,
-
-    // Like controllers
-    toggleLikeController,
-    getPostLikesController
+    getPostCommentsController
 } from "../controllers/post.controller.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
+import upload from "../utils/upload.js";
 
 const postRouter = Router();
 
-// Post routes
+// Posts
 postRouter.post("/", authMiddleware, upload.single("image"), createPostController);
 postRouter.get("/:id", authMiddleware, getPostWithLikesController);
 
-// Like routes
+// Likes
 postRouter.post("/:postId/like", authMiddleware, toggleLikeController);
 postRouter.get("/:postId/likes", authMiddleware, getPostLikesController);
 
-// Comment routes
+// Comments
 postRouter.post("/:postId/comments", authMiddleware, createCommentController);
 postRouter.put("/comments/:commentId", authMiddleware, updateCommentController);
 postRouter.delete("/comments/:commentId", authMiddleware, deleteCommentController);

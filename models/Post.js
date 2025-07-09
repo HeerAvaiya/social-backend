@@ -1,4 +1,3 @@
-// Post.js
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
 import User from './User.js';
@@ -8,9 +7,13 @@ const Post = sequelize.define('Post', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    image: {
+    imageUrl: { 
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
+    },
+    cloudinaryPublicId: { 
+        type: DataTypes.STRING,
+        allowNull: false,
     },
     createdBy: {
         type: DataTypes.INTEGER,
@@ -34,5 +37,4 @@ const Post = sequelize.define('Post', {
     tableName: 'posts',
     timestamps: true,
 });
-
 export default Post;

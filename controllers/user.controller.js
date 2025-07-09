@@ -1,6 +1,5 @@
 import Handler from "../utils/handler.js";
 import userService from "../services/user.service.js";
-import followerService from "../services/follower.service.js";
 import User from "../models/User.js";
 
 // GET my profile
@@ -143,3 +142,26 @@ export const getFollowingController = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+
+// FORGOT PASSWORD
+export const forgotPasswordController = Handler(async (req, res) => {
+    const { email } = req.body;
+    await userService.forgotPassword(email);
+
+    res.status(200).json({ error: false, message: "Reset link sent to email" });
+});
+
+
+export const resetPasswordController = Handler(async (req, res) => {
+    const token = req.params.token;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.trim().length < 6) {
+        return res.status(400).json({ error: true, message: "New password is required and must be at least 6 characters." });
+    }
+
+    await userService.resetPassword(token, newPassword);
+
+    res.status(200).json({ error: false, message: "Password reset successfully" });
+});

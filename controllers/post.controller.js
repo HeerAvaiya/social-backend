@@ -1,17 +1,29 @@
 import Handler from "../utils/handler.js";
+import cloudinary from "../utils/cloudinary.js";
 import postService from "../services/post.service.js";
-import likeService from "../services/like.service.js";
-import commentService from "../services/comment.service.js";
 
-// Create Post
 export const createPostController = Handler(async (req, res) => {
     const createdBy = req.user.id;
-    const image = req.file?.filename;
     const { caption } = req.body;
 
-    if (!image) throw new Error("Image is required");
+    if (!req.file?.path) {
+        throw new Error("Image file is required");
+    }
 
-    const newPost = await postService.createPost({ createdBy, image, caption });
+    const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "social_posts",
+    });
+
+    if (!result?.secure_url || !result?.public_id) {
+        throw new Error("Cloudinary upload failed");
+    }
+
+    const newPost = await postService.createPost({
+        createdBy,
+        caption,
+        imageUrl: result.secure_url,
+        cloudinaryPublicId: result.public_id,
+    });
 
     res.status(201).json({
         error: false,
@@ -20,7 +32,7 @@ export const createPostController = Handler(async (req, res) => {
     });
 });
 
-// Get Post with Likes Info
+// Get Post with Likes
 export const getPostWithLikesController = Handler(async (req, res) => {
     const postId = req.params.id;
     const post = await postService.getPostWithLikes(postId);
@@ -29,39 +41,29 @@ export const getPostWithLikesController = Handler(async (req, res) => {
     res.status(200).json({ error: false, data: post });
 });
 
+// Like / Unlike Post
+export const toggleLikeController = Handler(async (req, res) => {
+    const userId = req.user.id;
+    const postId = req.params.postId;
 
-// Like/Unlike a Post
-export const toggleLikeController = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const postId = req.params.postId;
+    const result = await likeService.toggleLike(userId, postId);
 
-        const result = await likeService.toggleLike(userId, postId);
+    res.status(200).json({
+        success: true,
+        message: result.liked ? "Post liked successfully" : "Post unliked successfully",
+    });
+});
 
-        return res.status(200).json({
-            success: true,
-            message: result.liked ? 'Post liked successfully' : 'Post unliked successfully',
-        });
-    } catch (err) {
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
+// Get Users Who Liked Post
+export const getPostLikesController = Handler(async (req, res) => {
+    const postId = req.params.postId;
+    const users = await likeService.getUsersWhoLikedPost(postId);
 
-// Get users who liked a post
-export const getPostLikesController = async (req, res) => {
-    try {
-        const postId = req.params.postId;
-        const users = await likeService.getUsersWhoLikedPost(postId);
-
-        return res.status(200).json({
-            success: true,
-            data: users,
-        });
-    } catch (err) {
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
+    res.status(200).json({
+        success: true,
+        data: users,
+    });
+});
 
 // Add Comment
 export const createCommentController = Handler(async (req, res) => {
@@ -110,7 +112,7 @@ export const updateCommentController = Handler(async (req, res) => {
     });
 });
 
-// Get Comments by Post
+// Get Comments for Post
 export const getPostCommentsController = Handler(async (req, res) => {
     const postId = req.params.postId;
     const comments = await commentService.getCommentsByPost(postId);

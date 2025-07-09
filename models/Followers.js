@@ -1,15 +1,14 @@
-// models/Followers.js
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
 import User from './User.js';
 
 const Follower = sequelize.define('Follower', {
-    userId: { // person being followed
+    userId: { 
         type: DataTypes.INTEGER,
         allowNull: false,
         references: { model: User, key: 'id' },
     },
-    followerId: { // person sending the request
+    followerId: { 
         type: DataTypes.INTEGER,
         allowNull: false,
         references: { model: User, key: 'id' },
