@@ -72,17 +72,17 @@ const unfollowUser = async (followerId, userId) => {
 const getFollowers = async (userId) => {
     const followers = await Follower.findAll({
         where: { userId, status: 'accepted' },
-        include: [{ model: User, as: 'FollowerUser', attributes: ['id', 'username'] }],
+        include: [{ model: User, as: 'FollowerInfo', attributes: ['id', 'username'] }],
     });
-    return followers.map(f => f.FollowerUser);
+    return followers.map(f => f.FollowerInfo);
 };
 
 const getFollowing = async (userId) => {
     const following = await Follower.findAll({
         where: { followerId: userId, status: 'accepted' },
-        include: [{ model: User, as: 'FollowingUser', attributes: ['id', 'username'] }],
+        include: [{ model: User, as: 'FollowingInfo', attributes: ['id', 'username'] }],
     });
-    return following.map(f => f.FollowingUser);
+    return following.map(f => f.FollowingInfo);
 };
 
 const forgotPassword = async (email) => {

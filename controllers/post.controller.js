@@ -142,7 +142,7 @@ export const toggleLikeController = Handler(async (req, res) => {
     const userId = req.user.id;
     const postId = req.params.postId;
 
-    const result = await likeService.toggleLike(userId, postId);
+    const result = await postService.toggleLike(userId, postId);
 
     res.status(200).json({
         success: true,
@@ -152,7 +152,7 @@ export const toggleLikeController = Handler(async (req, res) => {
 
 export const getPostLikesController = Handler(async (req, res) => {
     const postId = req.params.postId;
-    const users = await likeService.getUsersWhoLikedPost(postId);
+    const users = await postService.getUsersWhoLikedPost(postId);
 
     res.status(200).json({
         success: true,
@@ -162,12 +162,13 @@ export const getPostLikesController = Handler(async (req, res) => {
 
 export const createCommentController = Handler(async (req, res) => {
     const userId = req.user.id;
-    const postId = req.params.postId;
+    const { postId } = req.params;
     const { text } = req.body;
 
     if (!text) throw new Error("Comment text is required");
 
-    const comment = await commentService.addComment({ userId, postId, text });
+    const comment = await postService.addComment({ userId, postId, text });
+    console.log(comment)
 
     res.status(201).json({
         success: true,
@@ -176,11 +177,12 @@ export const createCommentController = Handler(async (req, res) => {
     });
 });
 
+
 export const deleteCommentController = Handler(async (req, res) => {
     const userId = req.user.id;
     const commentId = req.params.commentId;
 
-    await commentService.deleteComment(commentId, userId);
+    await postService.deleteComment(commentId, userId);
 
     res.status(200).json({
         success: true,
@@ -195,7 +197,7 @@ export const updateCommentController = Handler(async (req, res) => {
 
     if (!text) throw new Error("Comment text is required");
 
-    const updatedComment = await commentService.updateComment(commentId, userId, text);
+    const updatedComment = await postService.updateComment(commentId, userId, text);
 
     res.status(200).json({
         success: true,
@@ -206,7 +208,7 @@ export const updateCommentController = Handler(async (req, res) => {
 
 export const getPostCommentsController = Handler(async (req, res) => {
     const postId = req.params.postId;
-    const comments = await commentService.getCommentsByPost(postId);
+    const comments = await postService.getCommentsByPost(postId);
 
     res.status(200).json({
         success: true,

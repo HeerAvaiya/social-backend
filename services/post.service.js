@@ -54,7 +54,7 @@ const getPostsByUserId = async (userId) => {
         where: { createdBy: userId },
         include: {
             model: User,
-            as:'creator',
+            as: 'creator',
             attributes: ['id', 'username', 'email', 'profileImageUrl']
         },
         order: [["createdAt", "DESC"]],
@@ -72,11 +72,11 @@ const getPostWithLikes = async (postId) => {
         include: [
             {
                 model: Like,
-                as: "likes",
+                as: "Likes",
                 include: [
                     {
                         model: User,
-                        as: "user",
+                        as: "User",
                         attributes: ["id", "username", "email"],
                     },
                 ],

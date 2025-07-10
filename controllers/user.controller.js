@@ -177,7 +177,7 @@ export const sendFollowRequestController = async (req, res) => {
             return res.status(400).json({ success: false, message: "You cannot follow yourself" });
         }
 
-        const status = await followerService.sendFollowRequest(followerId, userId);
+        const status = await userService.sendFollowRequest(followerId, userId);
 
         if (status === 'accepted') {
             res.status(200).json({ success: true, message: "Followed successfully (public account)" });
@@ -194,7 +194,7 @@ export const acceptFollowRequestController = async (req, res) => {
         const userId = req.user.id;
         const followerId = req.params.followerId;
 
-        await followerService.respondToRequest(followerId, userId, 'accept');
+        await userService.respondToRequest(followerId, userId, 'accept');
         res.status(200).json({ success: true, message: "Follow request accepted" });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
@@ -206,7 +206,7 @@ export const rejectFollowRequestController = async (req, res) => {
         const userId = req.user.id;
         const followerId = req.params.followerId;
 
-        await followerService.respondToRequest(followerId, userId, 'reject');
+        await userService.respondToRequest(followerId, userId, 'reject');
         res.status(200).json({ success: true, message: "Follow request rejected" });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
@@ -218,7 +218,7 @@ export const unfollowUserController = async (req, res) => {
         const followerId = req.user.id;
         const userId = req.params.userId;
 
-        await followerService.unfollowUser(followerId, userId);
+        await userService.unfollowUser(followerId, userId);
         res.status(200).json({ success: true, message: "Unfollowed successfully" });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
@@ -246,7 +246,7 @@ export const togglePrivacyController = async (req, res) => {
 export const getFollowersController = async (req, res) => {
     try {
         const userId = req.params.userId;
-        const followers = await followerService.getFollowers(userId);
+        const followers = await userService.getFollowers(userId);
         res.status(200).json({ success: true, followers });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
@@ -256,7 +256,7 @@ export const getFollowersController = async (req, res) => {
 export const getFollowingController = async (req, res) => {
     try {
         const userId = req.params.userId;
-        const following = await followerService.getFollowing(userId);
+        const following = await userService.getFollowing(userId);
         res.status(200).json({ success: true, following });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
