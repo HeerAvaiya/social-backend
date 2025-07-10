@@ -4,9 +4,6 @@ import sendEmail from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-
-// USER
-
 const findUser = async (whereQuery) => {
     const result = await User.findOne({ where: whereQuery });
     if (result?.password) delete result.dataValues.password;
@@ -32,9 +29,6 @@ const updateUserProfileImage = async (userId, data) => {
     await user.save();
     return user;
 };
-
-
-// FOLLOWER 
 
 const sendFollowRequest = async (followerId, userId) => {
     if (Number(followerId) === Number(userId)) {

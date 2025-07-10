@@ -2,7 +2,6 @@ import { Router } from "express";
 import upload from "../utils/upload.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import {
-    // User Profile
     getUserMeController,
     updateUserMeController,
     deleteUserMeController,
@@ -12,8 +11,6 @@ import {
     togglePrivacyController,
     forgotPasswordController,
     resetPasswordController,
-
-    // Follow System
     sendFollowRequestController,
     acceptFollowRequestController,
     rejectFollowRequestController,
@@ -24,7 +21,6 @@ import {
 
 const userRouter = Router();
 
-// User Profile Routes
 userRouter.get("/me", authMiddleware, getUserMeController);
 userRouter.put("/me", authMiddleware, updateUserMeController);
 userRouter.put("/me/privacy", authMiddleware, togglePrivacyController);
@@ -34,7 +30,6 @@ userRouter.put("/profile/image", authMiddleware, upload.single("image"), updateP
 userRouter.delete("/profile/image", authMiddleware, deleteProfileImageController);
 
 
-// Follow System Routes
 userRouter.post("/:userId/follow", authMiddleware, sendFollowRequestController);
 userRouter.put("/:followerId/accept", authMiddleware, acceptFollowRequestController);
 userRouter.put("/:followerId/reject", authMiddleware, rejectFollowRequestController);

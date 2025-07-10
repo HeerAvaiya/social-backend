@@ -29,7 +29,6 @@ const updatePostImage = async (postId, { imageUrl, cloudinaryPublicId, caption }
     const post = await Post.findByPk(postId);
     if (!post) throw new Error("Post not found");
 
-    // Update all fields passed
     if (imageUrl) post.imageUrl = imageUrl;
     if (cloudinaryPublicId) post.cloudinaryPublicId = cloudinaryPublicId;
     if (caption !== undefined) post.caption = caption;
@@ -86,8 +85,6 @@ const getPostWithLikes = async (postId) => {
     });
 };
 
-
-// LIKE 
 const toggleLike = async (userId, postId) => {
     const existingLike = await Like.findOne({ where: { userId, postId } });
     const post = await Post.findByPk(postId);
@@ -117,7 +114,6 @@ const getUsersWhoLikedPost = async (postId) => {
     return likes.map(like => like.User);
 };
 
-// COMMENT 
 const addComment = async ({ text, userId, postId }) => {
     const comment = await Comment.create({ text, userId, postId });
 

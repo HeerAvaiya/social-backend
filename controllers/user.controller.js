@@ -5,8 +5,6 @@ import cloudinary from "../utils/cloudinary.js";
 import fs from "fs";
 import { CLIENT_RENEG_LIMIT } from "tls";
 
-
-// GET my profile
 export const getUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
     const user = await userService.findUser({ id: user_id });
@@ -19,7 +17,6 @@ export const getUserMeController = Handler(async (req, res) => {
     });
 });
 
-// UPDATE my profile
 export const updateUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
     const updateData = req.body;
@@ -33,7 +30,6 @@ export const updateUserMeController = Handler(async (req, res) => {
     });
 });
 
-// DELETE my account
 export const deleteUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
 
@@ -45,8 +41,6 @@ export const deleteUserMeController = Handler(async (req, res) => {
     });
 });
 
-
-
 export const createProfileImageController = async (req, res) => {
     let tempPublicId = null;
 
@@ -57,24 +51,20 @@ export const createProfileImageController = async (req, res) => {
         if (!user) return res.status(404).json({ error: "User not found" });
         if (!req.file) return res.status(400).json({ error: "Image file is required" });
 
-        // Delete old image (if exists)
         if (user.cloudinaryPublicId) {
             await cloudinary.uploader.destroy(user.cloudinaryPublicId);
         }
 
-        // Upload new image to Cloudinary
         const result = await cloudinary.uploader.upload(req.file.path, {
             folder: "user_profiles",
         });
 
         tempPublicId = result.public_id;
 
-        // Delete temp file
         if (req.file?.path && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
 
-        // Save to DB
         const updatedUser = await userService.updateUserProfileImage(userId, {
             profileImageUrl: result.secure_url,
             cloudinaryPublicId: result.public_id,
@@ -86,7 +76,6 @@ export const createProfileImageController = async (req, res) => {
         });
 
     } catch (error) {
-        // Cleanup if DB fails
         if (tempPublicId) {
             try {
                 await cloudinary.uploader.destroy(tempPublicId);
@@ -111,24 +100,20 @@ export const updateProfileImageController = async (req, res) => {
 
         if (!req.file) return res.status(400).json({ error: "Image file is required" });
 
-        // Delete old image from Cloudinary
         if (user.cloudinaryPublicId) {
             await cloudinary.uploader.destroy(user.cloudinaryPublicId);
         }
 
-        // Upload new image
         const result = await cloudinary.uploader.upload(req.file.path, {
             folder: "user_profiles"
         });
 
         tempPublicId = result.public_id;
 
-        // Delete temp file
         if (req.file?.path && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
 
-        // Update user in DB
         const updatedUser = await userService.updateUserProfileImage(userId, {
             profileImageUrl: result.secure_url,
             cloudinaryPublicId: result.public_id
@@ -161,15 +146,12 @@ export const deleteProfileImageController = async (req, res) => {
         const user = await userService.getUserById(userId);
         if (!user) return res.status(404).json({ error: "User not found" });
 
-        // If no image to delete
         if (!user.cloudinaryPublicId) {
             return res.status(400).json({ error: "No profile image to delete" });
         }
 
-        // Delete from Cloudinary
         await cloudinary.uploader.destroy(user.cloudinaryPublicId);
 
-        // Update user in DB
         const updatedUser = await userService.updateUserProfileImage(userId, {
             profileImageUrl: null,
             cloudinaryPublicId: null,
@@ -186,7 +168,6 @@ export const deleteProfileImageController = async (req, res) => {
 };
 
 
-// FOLLOW - Send follow request
 export const sendFollowRequestController = async (req, res) => {
     try {
         const followerId = req.user.id;
@@ -208,7 +189,6 @@ export const sendFollowRequestController = async (req, res) => {
     }
 };
 
-// ACCEPT follow request
 export const acceptFollowRequestController = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -221,7 +201,6 @@ export const acceptFollowRequestController = async (req, res) => {
     }
 };
 
-// REJECT follow request
 export const rejectFollowRequestController = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -234,7 +213,6 @@ export const rejectFollowRequestController = async (req, res) => {
     }
 };
 
-// UNFOLLOW user
 export const unfollowUserController = async (req, res) => {
     try {
         const followerId = req.user.id;
@@ -247,7 +225,6 @@ export const unfollowUserController = async (req, res) => {
     }
 };
 
-// TOGGLE privacy
 export const togglePrivacyController = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -266,7 +243,6 @@ export const togglePrivacyController = async (req, res) => {
     }
 };
 
-// GET my followers
 export const getFollowersController = async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -277,7 +253,6 @@ export const getFollowersController = async (req, res) => {
     }
 };
 
-// GET my followings
 export const getFollowingController = async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -289,7 +264,6 @@ export const getFollowingController = async (req, res) => {
 };
 
 
-// FORGOT PASSWORD
 export const forgotPasswordController = Handler(async (req, res) => {
     const { email } = req.body;
     await userService.forgotPassword(email);

@@ -6,9 +6,8 @@ import userService from "../services/user.service.js";
 
 export const registerController = handler(async (req, res) => {
     const userBody = req.body;
-
     const user = await authService.createUser(userBody);
-
+    
     const tokenPayload = {
         id: user.id,
         email: user.email,

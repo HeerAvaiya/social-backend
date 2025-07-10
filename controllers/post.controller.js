@@ -3,9 +3,6 @@ import cloudinary from "../utils/cloudinary.js";
 import postService from "../services/post.service.js";
 import fs from "fs";
 
-
-
-// Create Post
 export const createPostController = async (req, res) => {
     try {
         const { caption } = req.body;
@@ -15,7 +12,6 @@ export const createPostController = async (req, res) => {
             return res.status(400).json({ error: "Image is required" });
         }
 
-        // Upload to Cloudinary
         const result = await cloudinary.uploader.upload(req.file.path, {
             folder: "social_posts"
         });
@@ -27,7 +23,6 @@ export const createPostController = async (req, res) => {
         const imageUrl = result.secure_url;
         const cloudinaryPublicId = result.public_id;
 
-        // Save post to DB
         const newPost = await postService.createPost({
             createdBy,
             caption,
@@ -64,12 +59,10 @@ export const updatePostImageController = async (req, res) => {
 
         if (!req.file) return res.status(400).json({ error: "Image file is required" });
 
-        // ✅ STEP 1: DELETE old image from Cloudinary
         if (post.cloudinaryPublicId) {
             await cloudinary.uploader.destroy(post.cloudinaryPublicId);
         }
 
-        // ✅ STEP 2: Upload new image to Cloudinary
         const result = await cloudinary.uploader.upload(req.file.path, {
             folder: "social_posts",
         });
@@ -80,7 +73,6 @@ export const updatePostImageController = async (req, res) => {
             fs.unlinkSync(req.file.path);
         }
 
-        // ✅ STEP 3: Update DB with image and caption
         const updatedPost = await postService.updatePostImage(postId, {
             imageUrl: result.secure_url,
             cloudinaryPublicId: result.public_id,
@@ -92,7 +84,6 @@ export const updatePostImageController = async (req, res) => {
             post: updatedPost,
         });
     } catch (error) {
-        // ⚠️ Rollback if DB fails
         if (tempPublicId) {
             try {
                 await cloudinary.uploader.destroy(tempPublicId);
@@ -106,21 +97,16 @@ export const updatePostImageController = async (req, res) => {
     }
 };
 
-
-// Get all Post
 export const getAllPostsController = Handler(async (req, res) => {
     const posts = await postService.getAllPosts();
     res.status(200).json({ success: true, data: posts });
 });
-
-
 
 export const getUserPostsController = Handler(async (req, res) => {
     const userId = req.params.userId;
     const posts = await postService.getPostsByUserId(userId);
     res.status(200).json({ success: true, data: posts });
 });
-
 
 export const deletePostController = Handler(async (req, res) => {
     const userId = req.user.id;
@@ -135,7 +121,6 @@ export const deletePostController = Handler(async (req, res) => {
         return res.status(403).json({ error: "You are not authorized to delete this post" });
     }
 
-    // Delete image from Cloudinary
     if (post.cloudinaryPublicId) {
         await cloudinary.uploader.destroy(post.cloudinaryPublicId);
     }
@@ -145,8 +130,6 @@ export const deletePostController = Handler(async (req, res) => {
     res.status(200).json({ message: "Post deleted successfully" });
 });
 
-
-// Get Post with Likes
 export const getPostWithLikesController = Handler(async (req, res) => {
     const postId = req.params.id;
     const post = await postService.getPostWithLikes(postId);
@@ -155,7 +138,6 @@ export const getPostWithLikesController = Handler(async (req, res) => {
     res.status(200).json({ error: false, data: post });
 });
 
-// Like / Unlike Post
 export const toggleLikeController = Handler(async (req, res) => {
     const userId = req.user.id;
     const postId = req.params.postId;
@@ -168,7 +150,6 @@ export const toggleLikeController = Handler(async (req, res) => {
     });
 });
 
-// Get Users Who Liked Post
 export const getPostLikesController = Handler(async (req, res) => {
     const postId = req.params.postId;
     const users = await likeService.getUsersWhoLikedPost(postId);
@@ -179,7 +160,6 @@ export const getPostLikesController = Handler(async (req, res) => {
     });
 });
 
-// Add Comment
 export const createCommentController = Handler(async (req, res) => {
     const userId = req.user.id;
     const postId = req.params.postId;
@@ -196,7 +176,6 @@ export const createCommentController = Handler(async (req, res) => {
     });
 });
 
-// Delete Comment
 export const deleteCommentController = Handler(async (req, res) => {
     const userId = req.user.id;
     const commentId = req.params.commentId;
@@ -209,7 +188,6 @@ export const deleteCommentController = Handler(async (req, res) => {
     });
 });
 
-// Update Comment
 export const updateCommentController = Handler(async (req, res) => {
     const userId = req.user.id;
     const commentId = req.params.commentId;
@@ -226,7 +204,6 @@ export const updateCommentController = Handler(async (req, res) => {
     });
 });
 
-// Get Comments for Post
 export const getPostCommentsController = Handler(async (req, res) => {
     const postId = req.params.postId;
     const comments = await commentService.getCommentsByPost(postId);
