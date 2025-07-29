@@ -41,53 +41,39 @@ export const deleteUserMeController = Handler(async (req, res) => {
     });
 });
 
-export const createProfileImageController = async (req, res) => {
-    let tempPublicId = null;
 
-    try {
-        const userId = req.user.id;
-        const user = await userService.getUserById(userId);
 
-        if (!user) return res.status(404).json({ error: "User not found" });
-        if (!req.file) return res.status(400).json({ error: "Image file is required" });
+export const createProfileImageController = Handler(async (req, res) => {
+    const userId = req.user.id;
 
-        if (user.cloudinaryPublicId) {
-            await cloudinary.uploader.destroy(user.cloudinaryPublicId);
-        }
-
-        const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: "user_profiles",
-        });
-
-        tempPublicId = result.public_id;
-
-        if (req.file?.path && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-
-        const updatedUser = await userService.updateUserProfileImage(userId, {
-            profileImageUrl: result.secure_url,
-            cloudinaryPublicId: result.public_id,
-        });
-
-        res.status(200).json({
-            message: "Profile image uploaded successfully",
-            user: updatedUser,
-        });
-
-    } catch (error) {
-        if (tempPublicId) {
-            try {
-                await cloudinary.uploader.destroy(tempPublicId);
-            } catch (e) {
-                console.error("Rollback failed:", e.message);
-            }
-        }
-
-        console.error("Profile image upload error:", error.message);
-        res.status(500).json({ error: error.message });
+    if (!req.file) {
+        return res.status(400).json({ message: "Image file is required." });
     }
-};
+
+    const filePath = req.file.path;
+
+    const result = await cloudinary.uploader.upload(filePath, {
+        folder: 'user_profiles',
+    });
+
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.cloudinaryPublicId) {
+        await cloudinary.uploader.destroy(user.cloudinaryPublicId);
+    }
+
+    user.profileImageUrl = result.secure_url;
+    user.cloudinaryPublicId = result.public_id;
+    await user.save();
+
+    fs.unlinkSync(filePath);
+
+    res.status(200).json({
+        message: "Profile image uploaded successfully",
+        profileImageUrl: user.profileImageUrl,
+    });
+});
 
 
 export const updateProfileImageController = async (req, res) => {
@@ -98,7 +84,9 @@ export const updateProfileImageController = async (req, res) => {
         const user = await userService.getUserById(userId);
         if (!user) return res.status(404).json({ error: "User not found" });
 
-        if (!req.file) return res.status(400).json({ error: "Image file is required" });
+        if (!req.file) {
+            return res.status(400).json({ message: "Image file is required." });
+        }
 
         if (user.cloudinaryPublicId) {
             await cloudinary.uploader.destroy(user.cloudinaryPublicId);
