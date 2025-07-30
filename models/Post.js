@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
+import User from './User.js';
 
 const Post = sequelize.define('Post', {
     caption: {
@@ -32,4 +33,5 @@ const Post = sequelize.define('Post', {
     tableName: 'posts',
     timestamps: true,
 });
+
 export default Post;

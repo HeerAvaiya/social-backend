@@ -17,6 +17,8 @@ import {
     unfollowUserController,
     getFollowersController,
     getFollowingController,
+    discoverUsersController,
+    listDiscoverableUsersController
 } from "../controllers/user.controller.js";
 
 const userRouter = Router();
@@ -30,6 +32,8 @@ userRouter.put("/profile/image", authMiddleware, upload.single("image"), updateP
 userRouter.delete("/profile/image", authMiddleware, deleteProfileImageController);
 
 
+userRouter.get("/discover", authMiddleware, discoverUsersController);
+userRouter.get("/discover", authMiddleware, listDiscoverableUsersController);
 userRouter.post("/:userId/follow", authMiddleware, sendFollowRequestController);
 userRouter.put("/:followerId/accept", authMiddleware, acceptFollowRequestController);
 userRouter.put("/:followerId/reject", authMiddleware, rejectFollowRequestController);

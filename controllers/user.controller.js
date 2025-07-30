@@ -4,6 +4,9 @@ import User from "../models/User.js";
 import cloudinary from "../utils/cloudinary.js";
 import fs from "fs";
 import { CLIENT_RENEG_LIMIT } from "tls";
+import { Op } from "sequelize";
+import Follower from "../models/Followers.js";
+
 
 export const getUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
@@ -155,6 +158,48 @@ export const deleteProfileImageController = async (req, res) => {
     }
 };
 
+export const discoverUsersController = Handler(async (req, res) => {
+    const me = req.user.id;
+
+    const users = await User.findAll({
+        where: { id: { [Op.ne]: me } },
+        attributes: ["id", "username", "profileImageUrl", "isPrivate"],
+        order: [["createdAt", "DESC"]],
+        limit: 30,
+    });
+
+    const ids = users.map((u) => u.id);
+    if (ids.length === 0) return res.json({ users: [] });
+
+    const edges = await Follower.findAll({
+        where: { followerId: me, userId: ids },
+        attributes: ["userId", "status"],
+    });
+
+    const statusMap = new Map(edges.map((e) => [e.userId, e.status]));
+    const payload = users.map((u) => ({
+        id: u.id,
+        username: u.username,
+        profileImageUrl: u.profileImageUrl,
+        isPrivate: !!u.isPrivate,
+        relation: statusMap.get(u.id) || "none",
+    }));
+
+    res.json({ users: payload });
+});
+
+
+
+export const listDiscoverableUsersController = Handler(async (req, res) => {
+    const me = req.user.id;
+    const users = await User.findAll({
+        where: { id: { [Op.ne]: me } },
+        attributes: ["id", "username", "profileImageUrl", "isPrivate"],
+        order: [["username", "ASC"]],
+    });
+    res.json({ users });
+});
+
 
 export const sendFollowRequestController = async (req, res) => {
     try {
@@ -167,15 +212,27 @@ export const sendFollowRequestController = async (req, res) => {
 
         const status = await userService.sendFollowRequest(followerId, userId);
 
-        if (status === 'accepted') {
-            res.status(200).json({ success: true, message: "Followed successfully (public account)" });
+        if (status === "accepted") {
+            return res.status(200).json({
+                success: true,
+                status, 
+                message: "Followed successfully (public account)",
+            });
         } else {
-            res.status(200).json({ success: true, message: "Follow request sent (private account, pending approval)" });
+            return res.status(200).json({
+                success: true,
+                status, 
+                message: "Follow request sent (private account, pending approval)",
+            });
         }
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }
 };
+
+
+
+
 
 export const acceptFollowRequestController = async (req, res) => {
     try {

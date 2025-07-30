@@ -42,8 +42,6 @@ export const createPostController = async (req, res) => {
     }
 };
 
-
-
 export const updatePostImageController = async (req, res) => {
     let tempPublicId = null;
 
