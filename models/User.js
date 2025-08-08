@@ -23,6 +23,7 @@ const User = sequelize.define('User', {
     profileImageUrl: {
         type: DataTypes.STRING,
         allowNull: true,
+        
     },
     cloudinaryPublicId: {
         type: DataTypes.STRING,

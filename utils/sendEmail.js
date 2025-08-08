@@ -1,22 +1,54 @@
+// import nodemailer from "nodemailer";
+
+// const sendEmail = async ({ to, subject, html }) => {
+//     const transporter = nodemailer.createTransport({
+//         service: 'gmail',
+//         auth: {
+//             user: process.env.MAIL_USER,
+//             pass: process.env.MAIL_PASS,
+//         },
+//     });
+
+//     const mailOptions = {
+//         from: `"Social Media" <${process.env.MAIL_USER}>`,
+//         to,
+//         subject,
+//         html,
+//     };
+
+//     // await transporter.sendMail(mailOptions);
+//     await transporter.sendMail(mailOptions)
+//         .then((info) => {
+//             console.log("Email sent: ", info.response);
+//         })
+//         .catch((err) => {
+//             console.error("Failed to send email:", err);
+//         });
+// };
+
+// export default sendEmail;
+
+
+
+
+
+
+
 import nodemailer from "nodemailer";
 
-const sendEmail = async ({ to, subject, html }) => {
+export const sendEmail = async ({ to, subject, html }) => {
+    console.log("Preparing email to:", to);
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         auth: {
-            user: process.env.MAIL_USER, 
+            user: process.env.MAIL_USER,
             pass: process.env.MAIL_PASS,
         },
     });
-
-    const mailOptions = {
-        from: `"Social Media" <${process.env.MAIL_USER}>`,
-        to,
-        subject,
-        html,
-    };
-
-    await transporter.sendMail(mailOptions);
+    await transporter
+        .sendMail({ from: process.env.MAIL_USER, to, subject, html })
+        .then(info => console.log("Email sent:", info.response))
+        .catch(err => console.error("Email sending failed:", err));
 };
 
 export default sendEmail;

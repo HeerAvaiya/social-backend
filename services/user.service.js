@@ -85,19 +85,84 @@ const getFollowing = async (userId) => {
     return following.map(f => f.FollowingInfo);
 };
 
+// const forgotPassword = async (email) => {
+//     const user = await User.findOne({ where: { email } });
+//     if (!user) throw new Error("User not found");
+
+//     const token = jwt.sign({ id: user.id }, process.env.RESET_TOKEN_SECRET, { expiresIn: "15m" });
+
+//     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+//     const message = `<p>Click to reset your password: <a href="${resetLink}">${resetLink}</a></p>`;
+
+//     await sendEmail({ to: user.email, subject: "Reset Your Password", html: message });
+
+//     return true;
+// };
+
+
+
+
+// const forgotPassword = async (email) => {
+//     const user = await User.findOne({ where: { email } });
+//     if (!user) throw new Error("User not found");
+
+//     const token = jwt.sign({ id: user.id }, process.env.RESET_TOKEN_SECRET, { expiresIn: "15m" });
+
+//     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+//     const message = `<p>Click to reset your password: <a href="${resetLink}">${resetLink}</a></p>`;
+
+//     await sendEmail({ to: user.email, subject: "Reset Your Password", html: message });
+
+//     return true;
+// };
+
+
+
+// const forgotPassword = async (email) => {
+//     const user = await User.findOne({ where: { email } });
+//     if (!user) throw new Error("User not found");
+
+//     const token = jwt.sign({ id: user.id }, process.env.RESET_TOKEN_SECRET, { expiresIn: "15m" });
+
+//     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+//     const message = `<p>Click to reset your password: <a href="${resetLink}">${resetLink}</a></p>`;
+
+//     await sendEmail({ to: user.email, subject: "Reset Your Password", html: message });
+
+//     return true;
+// };
+
+
 const forgotPassword = async (email) => {
+    console.log("Reset email requested for:", email); // Optional debug log
+
     const user = await User.findOne({ where: { email } });
     if (!user) throw new Error("User not found");
 
     const token = jwt.sign({ id: user.id }, process.env.RESET_TOKEN_SECRET, { expiresIn: "15m" });
-
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
-    const message = `<p>Click to reset your password: <a href="${resetLink}">${resetLink}</a></p>`;
+    const html = `<p>Click to reset your password: <a href="${resetLink}">${resetLink}</a></p>`;
 
-    await sendEmail({ to: user.email, subject: "Reset Your Password", html: message });
-
-    return true;
+    await sendEmail({
+        to: user.email,
+        subject: "Reset Password",
+        html,
+    });
 };
+
+
+// const resetPassword = async (token, newPassword) => {
+//     const decoded = jwt.verify(token, process.env.RESET_TOKEN_SECRET);
+//     const user = await User.findByPk(decoded.id);
+//     if (!user) throw new Error("User not found");
+
+//     const hashed = await bcrypt.hash(newPassword, Number(process.env.SALTROUNDS));
+//     user.password = hashed;
+//     await user.save();
+
+//     return true;
+// };
+
 
 const resetPassword = async (token, newPassword) => {
     const decoded = jwt.verify(token, process.env.RESET_TOKEN_SECRET);
@@ -110,7 +175,6 @@ const resetPassword = async (token, newPassword) => {
 
     return true;
 };
-
 
 export default {
     findUser,

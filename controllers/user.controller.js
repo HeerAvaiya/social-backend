@@ -15,7 +15,7 @@ export const getUserMeController = Handler(async (req, res) => {
     if (!user) throw new Error("User not found");
 
     res.status(200).json({
-        error: false,
+        error: false,   
         data: user,
     });
 });
@@ -158,35 +158,106 @@ export const deleteProfileImageController = async (req, res) => {
     }
 };
 
-export const discoverUsersController = Handler(async (req, res) => {
-    const me = req.user.id;
 
-    const users = await User.findAll({
-        where: { id: { [Op.ne]: me } },
-        attributes: ["id", "username", "profileImageUrl", "isPrivate"],
-        order: [["createdAt", "DESC"]],
-        limit: 30,
-    });
+    
 
-    const ids = users.map((u) => u.id);
-    if (ids.length === 0) return res.json({ users: [] });
 
-    const edges = await Follower.findAll({
-        where: { followerId: me, userId: ids },
-        attributes: ["userId", "status"],
-    });
 
-    const statusMap = new Map(edges.map((e) => [e.userId, e.status]));
-    const payload = users.map((u) => ({
-        id: u.id,
-        username: u.username,
-        profileImageUrl: u.profileImageUrl,
-        isPrivate: !!u.isPrivate,
-        relation: statusMap.get(u.id) || "none",
-    }));
 
-    res.json({ users: payload });
-});
+
+// export const discoverUsersController = Handler(async (req, res) => {
+//     const me = req.user.id;
+
+//     const users = await User.findAll({
+//         where: { id: { [Op.ne]: me } },
+//         attributes: ["id", "username", "profileImageUrl", "isPrivate"],
+//         order: [["createdAt", "DESC"]],
+//         limit: 30,
+//     });
+
+//     const ids = users.map((u) => u.id);
+//     if (ids.length === 0) return res.json({ users: [] });
+
+//     const edges = await Follower.findAll({
+//         where: { followerId: me, userId: ids },
+//         attributes: ["userId", "status"],
+//     });
+
+//     const statusMap = new Map(edges.map((e) => [e.userId, e.status]));
+//     const payload = users.map((u) => ({
+//         id: u.id,
+//         username: u.username,
+//         profileImageUrl: u.profileImageUrl,
+//         isPrivate: !!u.isPrivate,
+//         relation: statusMap.get(u.id) || "none",
+//     }));
+
+//     res.json({ users: payload });
+// });
+
+
+
+
+
+
+
+
+
+
+// export const discoverUsersController = async (req, res) => {
+//     try {
+//         const searchQuery = req.query.search?.trim() || "";
+
+//         const users = await User.findAll({
+//             where: {
+//                 id: { [Op.ne]: req.user.id },
+//                 isPrivate: false,
+//                 [Op.or]: [
+//                     { username: { [Op.iLike]: `%${searchQuery}%` } },
+//                     { email: { [Op.iLike]: `%${searchQuery}%` } }
+//                 ]
+//             },
+//             attributes: ["id", "username", "profileImageUrl"]
+//         });
+
+//         return res.status(200).json(users);
+//     } catch (error) {
+//         console.error("Discover users error:", error);
+//         return res.status(500).json({ message: "Failed to search users" });
+//     }
+// };
+
+
+
+
+
+
+
+
+export const discoverUsersController = async (req, res) => {
+    try {
+        const me = req.user.id;
+        const searchQuery = req.query.search?.trim() || "";
+
+        const users = await User.findAll({
+            where: {
+                id: { [Op.ne]: me },
+                isPrivate: false,
+                [Op.or]: [
+                    { username: { [Op.iLike]: `%${searchQuery}%` } },
+                    { email: { [Op.iLike]: `%${searchQuery}%` } }
+                ]
+            },
+            attributes: ["id", "username", "profileImageUrl"]
+        });
+
+        return res.status(200).json(users);
+    } catch (error) {
+        console.error("Discover users error:", error);
+        return res.status(500).json({ message: "Failed to search users" });
+    }
+};
+
 
 
 
@@ -215,13 +286,13 @@ export const sendFollowRequestController = async (req, res) => {
         if (status === "accepted") {
             return res.status(200).json({
                 success: true,
-                status, 
+                status,
                 message: "Followed successfully (public account)",
             });
         } else {
             return res.status(200).json({
                 success: true,
-                status, 
+                status,
                 message: "Follow request sent (private account, pending approval)",
             });
         }
@@ -309,11 +380,31 @@ export const getFollowingController = async (req, res) => {
 };
 
 
-export const forgotPasswordController = Handler(async (req, res) => {
-    const { email } = req.body;
-    await userService.forgotPassword(email);
+// export const forgotPasswordController = Handler(async (req, res) => {
+//     const { email } = req.body;
+//     // await userService.forgotPassword(email);
+//     try {
+//         await userService.forgotPassword(email);
+//         res.status(200).json({ error: false, message: "Reset link sent to email" });
+//     } catch (err) {
+//         res.status(400).json({ error: true, message: err.message });
+//     }
 
-    res.status(200).json({ error: false, message: "Reset link sent to email" });
+//     // res.status(200).json({ error: false, message: "Reset link sent to email" });
+// });
+
+
+export const forgotPasswordController = Handler(async (req, res) => {
+    const { email } = req.body; // ✅ Extract email from object
+
+    try {
+        await userService.forgotPassword(email); // ✅ Pass only the string
+        console.log("Request received for forgot password:", email);
+ 
+        res.status(200).json({ error: false, message: "Reset link sent to email" });
+    } catch (err) {
+        res.status(400).json({ error: true, message: err.message });
+    }
 });
 
 

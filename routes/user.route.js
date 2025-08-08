@@ -19,10 +19,10 @@ import {
     getFollowingController,
     discoverUsersController,
     listDiscoverableUsersController
-} from "../controllers/user.controller.js";
+} from "../controllers/user.controller.js"; 
 
 const userRouter = Router();
-
+    
 userRouter.get("/me", authMiddleware, getUserMeController);
 userRouter.put("/me", authMiddleware, updateUserMeController);
 userRouter.put("/me/privacy", authMiddleware, togglePrivacyController);
@@ -33,7 +33,7 @@ userRouter.delete("/profile/image", authMiddleware, deleteProfileImageController
 
 
 userRouter.get("/discover", authMiddleware, discoverUsersController);
-userRouter.get("/discover", authMiddleware, listDiscoverableUsersController);
+// userRouter.get("/discover", authMiddleware, listDiscoverableUsersController);
 userRouter.post("/:userId/follow", authMiddleware, sendFollowRequestController);
 userRouter.put("/:followerId/accept", authMiddleware, acceptFollowRequestController);
 userRouter.put("/:followerId/reject", authMiddleware, rejectFollowRequestController);
@@ -44,4 +44,4 @@ userRouter.get("/:userId/following", authMiddleware, getFollowingController);
 userRouter.post("/forgot-password", forgotPasswordController);
 userRouter.post("/reset-password/:token", resetPasswordController);
 
-export default userRouter;
+export default userRouter;      
