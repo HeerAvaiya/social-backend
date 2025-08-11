@@ -18,11 +18,12 @@ import {
     getFollowersController,
     getFollowingController,
     discoverUsersController,
-    listDiscoverableUsersController
-} from "../controllers/user.controller.js"; 
+    listDiscoverableUsersController,
+    getPendingFollowRequestsController
+} from "../controllers/user.controller.js";
 
 const userRouter = Router();
-    
+
 userRouter.get("/me", authMiddleware, getUserMeController);
 userRouter.put("/me", authMiddleware, updateUserMeController);
 userRouter.put("/me/privacy", authMiddleware, togglePrivacyController);
@@ -34,6 +35,7 @@ userRouter.delete("/profile/image", authMiddleware, deleteProfileImageController
 
 userRouter.get("/discover", authMiddleware, discoverUsersController);
 // userRouter.get("/discover", authMiddleware, listDiscoverableUsersController);
+userRouter.get("/follow-requests", authMiddleware, getPendingFollowRequestsController);
 userRouter.post("/:userId/follow", authMiddleware, sendFollowRequestController);
 userRouter.put("/:followerId/accept", authMiddleware, acceptFollowRequestController);
 userRouter.put("/:followerId/reject", authMiddleware, rejectFollowRequestController);

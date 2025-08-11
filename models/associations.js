@@ -8,53 +8,40 @@ User.hasMany(Post, {
     foreignKey: 'createdBy',
     as: 'posts',
     onDelete: 'CASCADE',
-    hooks: true
+    hooks: true,
 });
+Post.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
 
-Post.belongsTo(User, {
-    foreignKey: 'createdBy',
-    as: 'creator'
-});
-
-Post.hasMany(Comment, {
-    foreignKey: 'postId',
-    onDelete: 'CASCADE'
-});
+Post.hasMany(Comment, { foreignKey: 'postId', onDelete: 'CASCADE' });
 Comment.belongsTo(Post, { foreignKey: 'postId' });
 
-User.hasMany(Comment, {
-    foreignKey: 'userId',
-    onDelete: 'CASCADE'
-});
+User.hasMany(Comment, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Comment.belongsTo(User, { foreignKey: 'userId' });
 
-Post.hasMany(Like, {
-    foreignKey: 'postId',
-    onDelete: 'CASCADE'
-});
+Post.hasMany(Like, { foreignKey: 'postId', onDelete: 'CASCADE' });
 Like.belongsTo(Post, { foreignKey: 'postId' });
 
-User.hasMany(Like, {
-    foreignKey: 'userId',
-    onDelete: 'CASCADE'
-});
+User.hasMany(Like, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Like.belongsTo(User, { foreignKey: 'userId' });
+
 
 User.belongsToMany(User, {
     through: Follower,
-    as: 'Followers',
+    as: 'Followers',    
     foreignKey: 'userId',
     otherKey: 'followerId',
 });
-
 User.belongsToMany(User, {
     through: Follower,
-    as: 'Following',
+    as: 'Following',     
     foreignKey: 'followerId',
     otherKey: 'userId',
 });
 
-Follower.belongsTo(User, { foreignKey: 'followerId', as: 'FollowerInfo' });
-Follower.belongsTo(User, { foreignKey: 'userId', as: 'FollowingInfo' });
+User.hasMany(Follower, { foreignKey: 'userId', as: 'FollowerRequestsReceived' }); 
+User.hasMany(Follower, { foreignKey: 'followerId', as: 'FollowerRequestsSent' });  
+
+Follower.belongsTo(User, { foreignKey: 'followerId', as: 'FollowerInfo' }); 
+Follower.belongsTo(User, { foreignKey: 'userId', as: 'FollowingInfo' });   
 
 export { User, Post, Comment, Like, Follower };

@@ -1,11 +1,10 @@
 import Handler from "../utils/handler.js";
 import userService from "../services/user.service.js";
-import User from "../models/User.js";
 import cloudinary from "../utils/cloudinary.js";
 import fs from "fs";
 import { CLIENT_RENEG_LIMIT } from "tls";
 import { Op } from "sequelize";
-import Follower from "../models/Followers.js";
+import { User, Follower } from '../models/associations.js';
 
 
 export const getUserMeController = Handler(async (req, res) => {
@@ -15,7 +14,7 @@ export const getUserMeController = Handler(async (req, res) => {
     if (!user) throw new Error("User not found");
 
     res.status(200).json({
-        error: false,   
+        error: false,
         data: user,
     });
 });
@@ -23,6 +22,9 @@ export const getUserMeController = Handler(async (req, res) => {
 export const updateUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
     const updateData = req.body;
+
+    console.log("Update data received:", updateData);
+    console.log("User ID:", user_id);
 
     const updatedUser = await userService.updateUser(user_id, updateData);
 
@@ -159,106 +161,41 @@ export const deleteProfileImageController = async (req, res) => {
 };
 
 
-    
-
-
-
-
-
-// export const discoverUsersController = Handler(async (req, res) => {
-//     const me = req.user.id;
-
-//     const users = await User.findAll({
-//         where: { id: { [Op.ne]: me } },
-//         attributes: ["id", "username", "profileImageUrl", "isPrivate"],
-//         order: [["createdAt", "DESC"]],
-//         limit: 30,
-//     });
-
-//     const ids = users.map((u) => u.id);
-//     if (ids.length === 0) return res.json({ users: [] });
-
-//     const edges = await Follower.findAll({
-//         where: { followerId: me, userId: ids },
-//         attributes: ["userId", "status"],
-//     });
-
-//     const statusMap = new Map(edges.map((e) => [e.userId, e.status]));
-//     const payload = users.map((u) => ({
-//         id: u.id,
-//         username: u.username,
-//         profileImageUrl: u.profileImageUrl,
-//         isPrivate: !!u.isPrivate,
-//         relation: statusMap.get(u.id) || "none",
-//     }));
-
-//     res.json({ users: payload });
-// });
-
-
-
-
-
-
-
-
-
-
-// export const discoverUsersController = async (req, res) => {
-//     try {
-//         const searchQuery = req.query.search?.trim() || "";
-
-//         const users = await User.findAll({
-//             where: {
-//                 id: { [Op.ne]: req.user.id },
-//                 isPrivate: false,
-//                 [Op.or]: [
-//                     { username: { [Op.iLike]: `%${searchQuery}%` } },
-//                     { email: { [Op.iLike]: `%${searchQuery}%` } }
-//                 ]
-//             },
-//             attributes: ["id", "username", "profileImageUrl"]
-//         });
-
-//         return res.status(200).json(users);
-//     } catch (error) {
-//         console.error("Discover users error:", error);
-//         return res.status(500).json({ message: "Failed to search users" });
-//     }
-// };
-
-
-
-
-
-
 
 
 export const discoverUsersController = async (req, res) => {
     try {
-        const me = req.user.id;
-        const searchQuery = req.query.search?.trim() || "";
+        const currentUserId = req.user.id;
 
         const users = await User.findAll({
-            where: {
-                id: { [Op.ne]: me },
-                isPrivate: false,
-                [Op.or]: [
-                    { username: { [Op.iLike]: `%${searchQuery}%` } },
-                    { email: { [Op.iLike]: `%${searchQuery}%` } }
-                ]
-            },
-            attributes: ["id", "username", "profileImageUrl"]
+            where: { id: { [Op.ne]: currentUserId } },
+            attributes: ['id', 'username', 'profileImageUrl', 'isPrivate'],
+            include: [{
+                model: Follower,
+                as: 'FollowerRequestsReceived',   // exactly as in associations.js
+                where: { followerId: currentUserId },
+                required: false,
+                attributes: ['status']
+            }]
         });
 
-        return res.status(200).json(users);
+        const result = users.map(user => {
+            const followRelation = user.FollowerRequestsReceived[0];
+            return {
+                id: user.id,
+                username: user.username,
+                profileImageUrl: user.profileImageUrl,
+                isPrivate: user.isPrivate,
+                followStatus: followRelation ? followRelation.status : 'none',
+            };
+        });
+
+        return res.status(200).json({ success: true, users: result });
     } catch (error) {
-        console.error("Discover users error:", error);
-        return res.status(500).json({ message: "Failed to search users" });
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
-
 
 
 export const listDiscoverableUsersController = Handler(async (req, res) => {
@@ -272,37 +209,64 @@ export const listDiscoverableUsersController = Handler(async (req, res) => {
 });
 
 
-export const sendFollowRequestController = async (req, res) => {
+
+export const getPendingFollowRequestsController = async (req, res) => {
     try {
-        const followerId = req.user.id;
-        const userId = req.params.userId;
+        const userId = req.user.id; 
 
-        if (followerId === userId) {
-            return res.status(400).json({ success: false, message: "You cannot follow yourself" });
-        }
+        const requests = await Follower.findAll({
+            where: {
+                userId, 
+                status: 'pending',
+            },
+            include: [{
+                model: User,
+                as: 'FollowerInfo', 
+                attributes: ['id', 'username', 'profileImageUrl'],
+            }],
+        });
 
-        const status = await userService.sendFollowRequest(followerId, userId);
+        const formattedRequests = requests.map(req => ({
+            id: req.followerId,
+            senderUsername: req.FollowerInfo.username,
+            senderProfileImage: req.FollowerInfo.profileImageUrl,
+        }));
 
-        if (status === "accepted") {
-            return res.status(200).json({
-                success: true,
-                status,
-                message: "Followed successfully (public account)",
-            });
-        } else {
-            return res.status(200).json({
-                success: true,
-                status,
-                message: "Follow request sent (private account, pending approval)",
-            });
-        }
+        res.status(200).json({ success: true, requests: formattedRequests });
     } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
 
+export const sendFollowRequestController = async (req, res) => {
+    try {
+        const followerId = req.user.id; // logged in user (sender)
+        const userId = req.params.userId; // user to be followed
 
+        if (Number(followerId) === Number(userId)) {
+            return res.status(400).json({ message: "You can't follow yourself." });
+        }
+
+        const existing = await Follower.findOne({ where: { followerId, userId } });
+        if (existing) {
+            return res.status(400).json({ message: "Already requested or following." });
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        const status = user.isPrivate ? "pending" : "accepted";
+
+        await Follower.create({ followerId, userId, status });
+
+        return res.status(200).json({ message: status });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
 
 
 export const acceptFollowRequestController = async (req, res) => {
@@ -380,27 +344,13 @@ export const getFollowingController = async (req, res) => {
 };
 
 
-// export const forgotPasswordController = Handler(async (req, res) => {
-//     const { email } = req.body;
-//     // await userService.forgotPassword(email);
-//     try {
-//         await userService.forgotPassword(email);
-//         res.status(200).json({ error: false, message: "Reset link sent to email" });
-//     } catch (err) {
-//         res.status(400).json({ error: true, message: err.message });
-//     }
-
-//     // res.status(200).json({ error: false, message: "Reset link sent to email" });
-// });
-
-
 export const forgotPasswordController = Handler(async (req, res) => {
     const { email } = req.body; // ✅ Extract email from object
 
     try {
         await userService.forgotPassword(email); // ✅ Pass only the string
         console.log("Request received for forgot password:", email);
- 
+
         res.status(200).json({ error: false, message: "Reset link sent to email" });
     } catch (err) {
         res.status(400).json({ error: true, message: err.message });
