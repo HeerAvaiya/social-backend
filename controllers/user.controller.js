@@ -212,16 +212,16 @@ export const listDiscoverableUsersController = Handler(async (req, res) => {
 
 export const getPendingFollowRequestsController = async (req, res) => {
     try {
-        const userId = req.user.id; 
+        const userId = req.user.id;
 
         const requests = await Follower.findAll({
             where: {
-                userId, 
+                userId,
                 status: 'pending',
             },
             include: [{
                 model: User,
-                as: 'FollowerInfo', 
+                as: 'FollowerInfo',
                 attributes: ['id', 'username', 'profileImageUrl'],
             }],
         });
@@ -333,6 +333,7 @@ export const getFollowersController = async (req, res) => {
     }
 };
 
+
 export const getFollowingController = async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -345,10 +346,10 @@ export const getFollowingController = async (req, res) => {
 
 
 export const forgotPasswordController = Handler(async (req, res) => {
-    const { email } = req.body; // ✅ Extract email from object
+    const { email } = req.body; 
 
     try {
-        await userService.forgotPassword(email); // ✅ Pass only the string
+        await userService.forgotPassword(email); 
         console.log("Request received for forgot password:", email);
 
         res.status(200).json({ error: false, message: "Reset link sent to email" });

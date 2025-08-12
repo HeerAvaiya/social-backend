@@ -84,7 +84,7 @@ const unfollowUser = async (followerId, userId) => {
 const getFollowers = async (userId) => {
     const followers = await Follower.findAll({
         where: { userId, status: 'accepted' },
-        include: [{ model: User, as: 'FollowerInfo', attributes: ['id', 'username'] }],
+        include: [{ model: User, as: 'FollowerInfo', attributes: ['id', 'username', 'profileImageUrl'] }],
     });
     return followers.map(f => f.FollowerInfo);
 };
@@ -92,7 +92,7 @@ const getFollowers = async (userId) => {
 const getFollowing = async (userId) => {
     const following = await Follower.findAll({
         where: { followerId: userId, status: 'accepted' },
-        include: [{ model: User, as: 'FollowingInfo', attributes: ['id', 'username'] }],
+        include: [{ model: User, as: 'FollowingInfo', attributes: ['id', 'username', 'profileImageUrl'] }],
     });
     return following.map(f => f.FollowingInfo);
 };
