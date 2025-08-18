@@ -2,6 +2,8 @@ import Post from "../models/Post.js";
 import Like from "../models/Like.js";
 import Comment from "../models/Comment.js";
 import User from "../models/User.js";
+import Follower from "../models/Followers.js";
+import { Op } from "sequelize";
 
 const createPost = async ({ createdBy, caption, imageUrl, cloudinaryPublicId }) => {
     console.log("Creating post with:", { createdBy, caption, imageUrl, cloudinaryPublicId });
@@ -85,23 +87,27 @@ const getPostWithLikes = async (postId) => {
     });
 };
 
+
 const toggleLike = async (userId, postId) => {
     const existingLike = await Like.findOne({ where: { userId, postId } });
     const post = await Post.findByPk(postId);
+
     if (!post) throw new Error("Post not found");
 
     if (existingLike) {
         await existingLike.destroy();
         post.likesCount = Math.max((post.likesCount || 0) - 1, 0);
         await post.save();
-        return { liked: false };
+        return { liked: false, post, likedByMe: false };
     } else {
         await Like.create({ userId, postId });
         post.likesCount = (post.likesCount || 0) + 1;
         await post.save();
-        return { liked: true };
+        return { liked: true, post, likedByMe: true };
     }
 };
+
+
 
 const getUsersWhoLikedPost = async (postId) => {
     const likes = await Like.findAll({
@@ -164,6 +170,28 @@ const getCommentsByPost = async (postId) => {
     });
 };
 
+
+const getFeedPosts = async (userId) => {
+    const following = await Follower.findAll({
+        where: { followerId: userId, status: "accepted" },
+        attributes: ["userId"],
+    });
+
+    const followingIds = following.map(f => f.userId);
+
+    followingIds.push(userId);
+
+    const posts = await Post.findAll({
+        where: { createdBy: followingIds },
+        include: [
+            { model: User, as: "creator", attributes: ["id", "username", "profileImageUrl"] }
+        ],
+        order: [["createdAt", "DESC"]],
+    });
+
+    return posts;
+};
+
 export default {
     createPost,
     getPostById,
@@ -177,6 +205,7 @@ export default {
     addComment,
     updateComment,
     deleteComment,
-    getCommentsByPost
+    getCommentsByPost,
+    getFeedPosts
 };
 

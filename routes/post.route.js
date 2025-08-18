@@ -11,12 +11,16 @@ import {
     createCommentController,
     updateCommentController,
     deleteCommentController,
-    getPostCommentsController
+    getPostCommentsController,
+    getFeedPostsController,
+    // getPostByIdController
 } from "../controllers/post.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import upload from "../utils/upload.js";
 
 const postRouter = Router();
+
+postRouter.get("/feed", authMiddleware, getFeedPostsController);
 
 postRouter.post("/", authMiddleware, upload.single("image"), createPostController);
 postRouter.get("/:id", authMiddleware, getPostWithLikesController);
@@ -32,5 +36,7 @@ postRouter.post("/:postId/comments", authMiddleware, createCommentController);
 postRouter.put("/comments/:commentId", authMiddleware, updateCommentController);
 postRouter.delete("/comments/:commentId", authMiddleware, deleteCommentController);
 postRouter.get("/:postId/comments", authMiddleware, getPostCommentsController);
+
+// postRouter.get("/:postId", authMiddleware, getPostByIdController);
 
 export default postRouter;

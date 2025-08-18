@@ -136,6 +136,31 @@ export const getPostWithLikesController = Handler(async (req, res) => {
     res.status(200).json({ error: false, data: post });
 });
 
+// export const toggleLikeController = Handler(async (req, res) => {
+//     const userId = req.user.id;
+//     const postId = req.params.postId;
+
+//     const result = await postService.toggleLike(userId, postId);
+
+//     res.status(200).json({
+//         success: true,
+//         message: result.liked ? "Post liked successfully" : "Post unliked successfully",
+//     });
+// });
+
+// export const toggleLikeController = Handler(async (req, res) => {
+//     const userId = req.user.id;
+//     const postId = req.params.postId;
+
+//     const result = await postService.toggleLike(userId, postId);
+
+//     res.status(200).json({
+//         success: true,
+//         message: result.liked ? "Post liked successfully" : "Post unliked successfully",
+//         post: result.post,   // ✅ updated post return
+//     });
+// });
+
 export const toggleLikeController = Handler(async (req, res) => {
     const userId = req.user.id;
     const postId = req.params.postId;
@@ -145,8 +170,13 @@ export const toggleLikeController = Handler(async (req, res) => {
     res.status(200).json({
         success: true,
         message: result.liked ? "Post liked successfully" : "Post unliked successfully",
+        post: {
+            ...result.post.toJSON(),
+            likedByMe: result.likedByMe
+        },
     });
 });
+
 
 export const getPostLikesController = Handler(async (req, res) => {
     const postId = req.params.postId;
@@ -213,3 +243,20 @@ export const getPostCommentsController = Handler(async (req, res) => {
         data: comments,
     });
 });
+
+
+
+export const getFeedPostsController = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+
+        const posts = await postService.getFeedPosts(userId);
+
+        res.status(200).json({
+            success: true,
+            data: posts
+        });
+    } catch (error) {
+        next(error);
+    }
+};
