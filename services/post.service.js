@@ -114,7 +114,7 @@ const getUsersWhoLikedPost = async (postId) => {
         where: { postId },
         include: [{
             model: User,
-            attributes: ['id', 'username', 'email']
+            attributes: ['id', 'username', 'email','profileImageUrl']
         }]
     });
     return likes.map(like => like.User);
@@ -164,7 +164,7 @@ const getCommentsByPost = async (postId) => {
         where: { postId },
         include: {
             model: User,
-            attributes: ['id', 'username', 'email']
+            attributes: ['id', 'username', 'email', 'profileImageUrl']
         },
         order: [['createdAt', 'DESC']]
     });

@@ -162,40 +162,88 @@ export const deleteProfileImageController = async (req, res) => {
 
 
 
+////working without searchbar
+// export const discoverUsersController = async (req, res) => {
+//     try {
+//         const currentUserId = req.user.id;
 
+//         const users = await User.findAll({
+//             where: { id: { [Op.ne]: currentUserId } },
+//             attributes: ['id', 'username', 'profileImageUrl', 'isPrivate'],
+//             include: [{
+//                 model: Follower,
+//                 as: 'FollowerRequestsReceived',   // exactly as in associations.js
+//                 where: { followerId: currentUserId },
+//                 required: false,
+//                 attributes: ['status']
+//             }]
+//         });
+
+//         const result = users.map(user => {
+//             const followRelation = user.FollowerRequestsReceived[0];
+//             return {
+//                 id: user.id,
+//                 username: user.username,
+//                 profileImageUrl: user.profileImageUrl,
+//                 isPrivate: user.isPrivate,
+//                 followStatus: followRelation ? followRelation.status : 'none',
+//             };
+//         });
+
+//         return res.status(200).json({ success: true, users: result });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// };
+
+
+////working with searchbar
 export const discoverUsersController = async (req, res) => {
     try {
         const currentUserId = req.user.id;
+        const { search } = req.query;
+
+        const whereClause = {
+            id: { [Op.ne]: currentUserId },
+        };
+
+        if (search) {
+            whereClause.username = { [Op.iLike]: `%${search}%` }; // postgres ilike
+        }
 
         const users = await User.findAll({
-            where: { id: { [Op.ne]: currentUserId } },
-            attributes: ['id', 'username', 'profileImageUrl', 'isPrivate'],
-            include: [{
-                model: Follower,
-                as: 'FollowerRequestsReceived',   // exactly as in associations.js
-                where: { followerId: currentUserId },
-                required: false,
-                attributes: ['status']
-            }]
+            where: whereClause,
+            attributes: ["id", "username", "profileImageUrl", "isPrivate"],
+            include: [
+                {
+                    model: Follower,
+                    as: "FollowerRequestsReceived",
+                    where: { followerId: currentUserId },
+                    required: false,
+                    attributes: ["status"],
+                },
+            ],
         });
 
-        const result = users.map(user => {
+        const result = users.map((user) => {
             const followRelation = user.FollowerRequestsReceived[0];
             return {
                 id: user.id,
                 username: user.username,
                 profileImageUrl: user.profileImageUrl,
                 isPrivate: user.isPrivate,
-                followStatus: followRelation ? followRelation.status : 'none',
+                followStatus: followRelation ? followRelation.status : "none",
             };
         });
 
         return res.status(200).json({ success: true, users: result });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ success: false, message: 'Server error' });
+        return res.status(500).json({ success: false, message: "Server error" });
     }
 };
+
 
 
 export const listDiscoverableUsersController = Handler(async (req, res) => {
@@ -346,10 +394,10 @@ export const getFollowingController = async (req, res) => {
 
 
 export const forgotPasswordController = Handler(async (req, res) => {
-    const { email } = req.body; 
+    const { email } = req.body;
 
     try {
-        await userService.forgotPassword(email); 
+        await userService.forgotPassword(email);
         console.log("Request received for forgot password:", email);
 
         res.status(200).json({ error: false, message: "Reset link sent to email" });
