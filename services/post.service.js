@@ -26,18 +26,17 @@ const getPostById = async (postId) => {
 };
 
 
-
 const updatePostImage = async (postId, { imageUrl, cloudinaryPublicId, caption }) => {
     const post = await Post.findByPk(postId);
     if (!post) throw new Error("Post not found");
 
-    if (imageUrl) post.imageUrl = imageUrl;
-    if (cloudinaryPublicId) post.cloudinaryPublicId = cloudinaryPublicId;
+    if (imageUrl !== undefined) post.imageUrl = imageUrl;
+    if (cloudinaryPublicId !== undefined) post.cloudinaryPublicId = cloudinaryPublicId;
     if (caption !== undefined) post.caption = caption;
 
     await post.save();
     return post;
-};
+};  
 
 
 const getAllPosts = async () => {
@@ -114,7 +113,7 @@ const getUsersWhoLikedPost = async (postId) => {
         where: { postId },
         include: [{
             model: User,
-            attributes: ['id', 'username', 'email','profileImageUrl']
+            attributes: ['id', 'username', 'email', 'profileImageUrl']
         }]
     });
     return likes.map(like => like.User);

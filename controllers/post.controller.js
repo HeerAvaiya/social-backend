@@ -42,6 +42,8 @@ export const createPostController = async (req, res) => {
     }
 };
 
+
+
 export const updatePostImageController = async (req, res) => {
     let tempPublicId = null;
 
@@ -55,30 +57,39 @@ export const updatePostImageController = async (req, res) => {
         if (post.createdBy !== userId)
             return res.status(403).json({ error: "You are not authorized to update this post" });
 
-        if (!req.file) return res.status(400).json({ error: "Image file is required" });
+        let imageUrl = post.imageUrl;
+        let cloudinaryPublicId = post.cloudinaryPublicId;
 
-        if (post.cloudinaryPublicId) {
-            await cloudinary.uploader.destroy(post.cloudinaryPublicId);
+        // 👉 Only if file is provided
+        if (req.file) {
+            if (post.cloudinaryPublicId) {
+                await cloudinary.uploader.destroy(post.cloudinaryPublicId);
+            }
+
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "social_posts",
+                resource_type: "auto"
+            });
+
+            tempPublicId = result.public_id;
+
+            if (req.file?.path && fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+
+            imageUrl = result.secure_url;
+            cloudinaryPublicId = result.public_id;
         }
 
-        const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: "social_posts",
-        });
-
-        tempPublicId = result.public_id;
-
-        if (req.file?.path && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-
+        // update caption or image or both
         const updatedPost = await postService.updatePostImage(postId, {
-            imageUrl: result.secure_url,
-            cloudinaryPublicId: result.public_id,
+            imageUrl,
+            cloudinaryPublicId,
             caption: caption ?? post.caption,
         });
 
         res.status(200).json({
-            message: "Post image and caption updated successfully",
+            message: "Post updated successfully",
             post: updatedPost,
         });
     } catch (error) {
@@ -90,10 +101,13 @@ export const updatePostImageController = async (req, res) => {
             }
         }
 
-        console.error("Post image update error:", error);
+        console.error("Post update error:", error);
         res.status(500).json({ error: error.message });
     }
 };
+
+
+
 
 export const getAllPostsController = Handler(async (req, res) => {
     const posts = await postService.getAllPosts();
