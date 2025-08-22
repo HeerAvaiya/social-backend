@@ -98,11 +98,18 @@ const getFollowing = async (userId) => {
 };
 
 
+const cancelFollowRequest = async (followerId, userId) => {
+    const follow = await Follower.findOne({ where: { followerId, userId, status: "pending" } });
+    if (!follow) throw new Error("No pending request found");
+
+    await follow.destroy();
+    return true;
+};
 
 
 
 const forgotPassword = async (email) => {
-    console.log("Reset email requested for:", email); // Optional debug log
+    console.log("Reset email requested for:", email);
 
     const user = await User.findOne({ where: { email } });
     if (!user) throw new Error("User not found");
@@ -144,6 +151,7 @@ export default {
     unfollowUser,
     getFollowers,
     getFollowing,
+    cancelFollowRequest,
     forgotPassword,
     resetPassword,
 };

@@ -248,3 +248,4 @@ export const getFeedPostsController = async (req, res, next) => {
         next(error);
     }
 };
+

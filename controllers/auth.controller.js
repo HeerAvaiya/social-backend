@@ -12,6 +12,7 @@ export const registerController = handler(async (req, res) => {
         id: user.id,
         email: user.email,
         username: user.username,
+        profileImageUrl: user.profileImageUrl,
     };
 
     const tokens = createTokenPair(tokenPayload);
@@ -39,6 +40,7 @@ export const loginController = handler(async (req, res) => {
         id: user.id,
         email: user.email,
         username: user.username,
+        profileImageUrl: user.profileImageUrl,
     };
 
     const tokens = createTokenPair(tokenPayload);

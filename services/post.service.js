@@ -36,7 +36,7 @@ const updatePostImage = async (postId, { imageUrl, cloudinaryPublicId, caption }
 
     await post.save();
     return post;
-};  
+};
 
 
 const getAllPosts = async () => {

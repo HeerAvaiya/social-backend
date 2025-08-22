@@ -419,3 +419,22 @@ export const resetPasswordController = Handler(async (req, res) => {
 
     res.status(200).json({ error: false, message: "Password reset successfully" });
 });
+
+
+
+export const cancelFollowRequestController = async (req, res) => {
+    try {
+        const followerId = req.user.id; // logged in user
+        const userId = req.params.userId; // request cancel karva nu user
+
+        const follow = await Follower.findOne({ where: { followerId, userId, status: "pending" } });
+        if (!follow) {
+            return res.status(404).json({ message: "No pending follow request found" });
+        }
+
+        await follow.destroy();
+        res.status(200).json({ success: true, message: "Follow request cancelled" });
+    } catch (err) {
+        res.status(400).json({ success: false, message: err.message });
+    }
+};
