@@ -18,8 +18,9 @@ import {
     getFollowersController,
     getFollowingController,
     discoverUsersController,
-    listDiscoverableUsersController,
-    getPendingFollowRequestsController
+    getPendingFollowRequestsController,
+    removeFollowerController,
+    cancelFollowRequestController
 } from "../controllers/user.controller.js";
 
 const userRouter = Router();
@@ -34,7 +35,6 @@ userRouter.delete("/profile/image", authMiddleware, deleteProfileImageController
 
 
 userRouter.get("/discover", authMiddleware, discoverUsersController);
-// userRouter.get("/discover", authMiddleware, listDiscoverableUsersController);
 userRouter.get("/follow-requests", authMiddleware, getPendingFollowRequestsController);
 userRouter.post("/:userId/follow", authMiddleware, sendFollowRequestController);
 userRouter.put("/:followerId/accept", authMiddleware, acceptFollowRequestController);
@@ -42,6 +42,8 @@ userRouter.put("/:followerId/reject", authMiddleware, rejectFollowRequestControl
 userRouter.delete("/:userId/unfollow", authMiddleware, unfollowUserController);
 userRouter.get("/:userId/followers", authMiddleware, getFollowersController);
 userRouter.get("/:userId/following", authMiddleware, getFollowingController);
+userRouter.delete("/followers/:followerId", authMiddleware, removeFollowerController);
+userRouter.delete("/:userId/cancel", authMiddleware, cancelFollowRequestController);
 
 userRouter.post("/forgot-password", forgotPasswordController);
 userRouter.post("/reset-password/:token", resetPasswordController);

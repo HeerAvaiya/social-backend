@@ -47,14 +47,23 @@ const sendFollowRequest = async (followerId, userId) => {
         throw new Error("You cannot follow yourself");
     }
 
-    const existing = await Follower.findOne({ where: { followerId, userId } });
-    if (existing) throw new Error("Already requested or following");
+    const existing = await Follower.findOne({
+        where: {
+            followerId,
+            userId,
+            status: ["pending", "accepted"]  
+        }
+    });
+    if (existing) {
+        return res.status(400).json({ message: "Already requested or following." });
+    }
 
     const user = await User.findByPk(userId);
-    const status = user.isPrivate ? 'pending' : 'accepted';
+    const status = user.isPrivate ? "pending" : "accepted";
 
     await Follower.create({ followerId, userId, status });
-    return status;
+
+    return res.status(200).json({ followStatus: status });
 };
 
 const respondToRequest = async (followerId, userId, action) => {
@@ -141,6 +150,18 @@ const resetPassword = async (token, newPassword) => {
     return true;
 };
 
+export const removeFollower = async (userId, followerId) => {
+    const followRelation = await Follower.findOne({
+        where: { userId, followerId, status: "accepted" },
+    });
+
+    if (!followRelation) throw new Error("This user is not your follower");
+
+    await followRelation.destroy();
+    return true;
+};
+
+
 export default {
     findUser,
     updateUser,
@@ -154,4 +175,5 @@ export default {
     cancelFollowRequest,
     forgotPassword,
     resetPassword,
+    removeFollower
 };

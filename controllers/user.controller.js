@@ -161,44 +161,6 @@ export const deleteProfileImageController = async (req, res) => {
 };
 
 
-
-////working without searchbar
-// export const discoverUsersController = async (req, res) => {
-//     try {
-//         const currentUserId = req.user.id;
-
-//         const users = await User.findAll({
-//             where: { id: { [Op.ne]: currentUserId } },
-//             attributes: ['id', 'username', 'profileImageUrl', 'isPrivate'],
-//             include: [{
-//                 model: Follower,
-//                 as: 'FollowerRequestsReceived',   // exactly as in associations.js
-//                 where: { followerId: currentUserId },
-//                 required: false,
-//                 attributes: ['status']
-//             }]
-//         });
-
-//         const result = users.map(user => {
-//             const followRelation = user.FollowerRequestsReceived[0];
-//             return {
-//                 id: user.id,
-//                 username: user.username,
-//                 profileImageUrl: user.profileImageUrl,
-//                 isPrivate: user.isPrivate,
-//                 followStatus: followRelation ? followRelation.status : 'none',
-//             };
-//         });
-
-//         return res.status(200).json({ success: true, users: result });
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ success: false, message: 'Server error' });
-//     }
-// };
-
-
-////working with searchbar
 export const discoverUsersController = async (req, res) => {
     try {
         const currentUserId = req.user.id;
@@ -287,16 +249,49 @@ export const getPendingFollowRequestsController = async (req, res) => {
 };
 
 
+
+
+// export const sendFollowRequestController = async (req, res) => {
+//     try {
+//         const followerId = req.user.id; // logged in user
+//         const userId = req.params.userId; // user to be followed
+
+//         if (Number(followerId) === Number(userId)) {
+//             return res.status(400).json({ message: "You can't follow yourself." });
+//         }
+
+//         const existing = await Follower.findOne({ where: { followerId, userId } });
+//         if (existing) {
+//             return res.status(400).json({ message: "Already requested or following." });
+//         }
+
+//         const user = await User.findByPk(userId);
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found." });
+//         }
+
+//         const status = user.isPrivate ? "pending" : "accepted";
+
+//         await Follower.create({ followerId, userId, status });
+
+//         return res.status(200).json({ followStatus: status });
+//     } catch (error) {
+//         return res.status(500).json({ message: error.message });
+//     }
+// };
+
 export const sendFollowRequestController = async (req, res) => {
     try {
-        const followerId = req.user.id; // logged in user (sender)
-        const userId = req.params.userId; // user to be followed
+        const followerId = req.user.id; 
+        const userId = req.params.userId; 
 
         if (Number(followerId) === Number(userId)) {
             return res.status(400).json({ message: "You can't follow yourself." });
         }
 
-        const existing = await Follower.findOne({ where: { followerId, userId } });
+        const existing = await Follower.findOne({
+            where: { followerId, userId }
+        });
         if (existing) {
             return res.status(400).json({ message: "Already requested or following." });
         }
@@ -310,12 +305,11 @@ export const sendFollowRequestController = async (req, res) => {
 
         await Follower.create({ followerId, userId, status });
 
-        return res.status(200).json({ message: status });
+        return res.status(200).json({ userId, followStatus: status });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 };
-
 
 export const acceptFollowRequestController = async (req, res) => {
     try {
@@ -424,8 +418,8 @@ export const resetPasswordController = Handler(async (req, res) => {
 
 export const cancelFollowRequestController = async (req, res) => {
     try {
-        const followerId = req.user.id; // logged in user
-        const userId = req.params.userId; // request cancel karva nu user
+        const followerId = req.user.id;
+        const userId = req.params.userId;
 
         const follow = await Follower.findOne({ where: { followerId, userId, status: "pending" } });
         if (!follow) {
@@ -434,6 +428,20 @@ export const cancelFollowRequestController = async (req, res) => {
 
         await follow.destroy();
         res.status(200).json({ success: true, message: "Follow request cancelled" });
+    } catch (err) {
+        res.status(400).json({ success: false, message: err.message });
+    }
+};
+
+
+export const removeFollowerController = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const followerId = req.params.followerId;
+
+        await userService.removeFollower(userId, followerId);
+
+        res.status(200).json({ success: true, message: "Follower removed successfully" });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }
