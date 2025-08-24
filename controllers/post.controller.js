@@ -60,7 +60,7 @@ export const updatePostImageController = async (req, res) => {
         let imageUrl = post.imageUrl;
         let cloudinaryPublicId = post.cloudinaryPublicId;
 
-        // 👉 Only if file is provided
+        //  Only if file is provided
         if (req.file) {
             if (post.cloudinaryPublicId) {
                 await cloudinary.uploader.destroy(post.cloudinaryPublicId);

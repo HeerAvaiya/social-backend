@@ -135,9 +135,6 @@ const forgotPassword = async (email) => {
 };
 
 
-
-
-
 const resetPassword = async (token, newPassword) => {
     const decoded = jwt.verify(token, process.env.RESET_TOKEN_SECRET);
     const user = await User.findByPk(decoded.id);

@@ -10,30 +10,27 @@ import { User, Follower } from '../models/associations.js';
 export const getUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
     const user = await userService.findUser({ id: user_id });
-
     if (!user) throw new Error("User not found");
-
     res.status(200).json({
         error: false,
         data: user,
     });
 });
 
+
 export const updateUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
     const updateData = req.body;
-
-    console.log("Update data received:", updateData);
-    console.log("User ID:", user_id);
-
+    // console.log("Update data received:", updateData);
+    // console.log("User ID:", user_id);
     const updatedUser = await userService.updateUser(user_id, updateData);
-
     res.status(200).json({
         error: false,
         message: "User updated successfully",
         data: updatedUser,
     });
 });
+
 
 export const deleteUserMeController = Handler(async (req, res) => {
     const user_id = req.user.id;
@@ -45,7 +42,6 @@ export const deleteUserMeController = Handler(async (req, res) => {
         message: "User deleted successfully"
     });
 });
-
 
 
 export const createProfileImageController = Handler(async (req, res) => {
@@ -131,7 +127,6 @@ export const updateProfileImageController = async (req, res) => {
 };
 
 
-
 export const deleteProfileImageController = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -207,7 +202,6 @@ export const discoverUsersController = async (req, res) => {
 };
 
 
-
 export const listDiscoverableUsersController = Handler(async (req, res) => {
     const me = req.user.id;
     const users = await User.findAll({
@@ -217,7 +211,6 @@ export const listDiscoverableUsersController = Handler(async (req, res) => {
     });
     res.json({ users });
 });
-
 
 
 export const getPendingFollowRequestsController = async (req, res) => {
@@ -249,41 +242,10 @@ export const getPendingFollowRequestsController = async (req, res) => {
 };
 
 
-
-
-// export const sendFollowRequestController = async (req, res) => {
-//     try {
-//         const followerId = req.user.id; // logged in user
-//         const userId = req.params.userId; // user to be followed
-
-//         if (Number(followerId) === Number(userId)) {
-//             return res.status(400).json({ message: "You can't follow yourself." });
-//         }
-
-//         const existing = await Follower.findOne({ where: { followerId, userId } });
-//         if (existing) {
-//             return res.status(400).json({ message: "Already requested or following." });
-//         }
-
-//         const user = await User.findByPk(userId);
-//         if (!user) {
-//             return res.status(404).json({ message: "User not found." });
-//         }
-
-//         const status = user.isPrivate ? "pending" : "accepted";
-
-//         await Follower.create({ followerId, userId, status });
-
-//         return res.status(200).json({ followStatus: status });
-//     } catch (error) {
-//         return res.status(500).json({ message: error.message });
-//     }
-// };
-
 export const sendFollowRequestController = async (req, res) => {
     try {
-        const followerId = req.user.id; 
-        const userId = req.params.userId; 
+        const followerId = req.user.id;
+        const userId = req.params.userId;
 
         if (Number(followerId) === Number(userId)) {
             return res.status(400).json({ message: "You can't follow yourself." });
