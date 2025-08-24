@@ -387,35 +387,6 @@ export const getFollowingController = async (req, res) => {
 };
 
 
-export const forgotPasswordController = Handler(async (req, res) => {
-    const { email } = req.body;
-
-    try {
-        await userService.forgotPassword(email);
-        console.log("Request received for forgot password:", email);
-
-        res.status(200).json({ error: false, message: "Reset link sent to email" });
-    } catch (err) {
-        res.status(400).json({ error: true, message: err.message });
-    }
-});
-
-
-export const resetPasswordController = Handler(async (req, res) => {
-    const token = req.params.token;
-    const { newPassword } = req.body;
-    console.log(newPassword);
-    if (!newPassword || newPassword.trim().length < 6) {
-        return res.status(400).json({ error: true, message: "New password is required and must be at least 6 characters." });
-    }
-
-    await userService.resetPassword(token, newPassword);
-
-    res.status(200).json({ error: false, message: "Password reset successfully" });
-});
-
-
-
 export const cancelFollowRequestController = async (req, res) => {
     try {
         const followerId = req.user.id;
@@ -446,3 +417,32 @@ export const removeFollowerController = async (req, res) => {
         res.status(400).json({ success: false, message: err.message });
     }
 };
+
+
+
+export const forgotPasswordController = Handler(async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        await userService.forgotPassword(email);
+        console.log("Request received for forgot password:", email);
+
+        res.status(200).json({ error: false, message: "Reset link sent to email" });
+    } catch (err) {
+        res.status(400).json({ error: true, message: err.message });
+    }
+});
+
+
+export const resetPasswordController = Handler(async (req, res) => {
+    const token = req.params.token;
+    const { newPassword } = req.body;
+    console.log(newPassword);
+    if (!newPassword || newPassword.trim().length < 6) {
+        return res.status(400).json({ error: true, message: "New password is required and must be at least 6 characters." });
+    }
+
+    await userService.resetPassword(token, newPassword);
+
+    res.status(200).json({ error: false, message: "Password reset successfully" });
+});

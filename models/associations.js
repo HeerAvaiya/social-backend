@@ -27,21 +27,21 @@ Like.belongsTo(User, { foreignKey: 'userId' });
 
 User.belongsToMany(User, {
     through: Follower,
-    as: 'Followers',    
+    as: 'Followers',
     foreignKey: 'userId',
     otherKey: 'followerId',
 });
 User.belongsToMany(User, {
     through: Follower,
-    as: 'Following',     
+    as: 'Following',
     foreignKey: 'followerId',
     otherKey: 'userId',
 });
 
-User.hasMany(Follower, { foreignKey: 'userId', as: 'FollowerRequestsReceived' }); 
-User.hasMany(Follower, { foreignKey: 'followerId', as: 'FollowerRequestsSent' });  
+User.hasMany(Follower, { foreignKey: 'userId', as: 'FollowerRequestsReceived' });
+User.hasMany(Follower, { foreignKey: 'followerId', as: 'FollowerRequestsSent' });
 
-Follower.belongsTo(User, { foreignKey: 'followerId', as: 'FollowerInfo' }); 
-Follower.belongsTo(User, { foreignKey: 'userId', as: 'FollowingInfo' });   
+Follower.belongsTo(User, { foreignKey: 'followerId', as: 'FollowerInfo' });
+Follower.belongsTo(User, { foreignKey: 'userId', as: 'FollowingInfo' });
 
 export { User, Post, Comment, Like, Follower };

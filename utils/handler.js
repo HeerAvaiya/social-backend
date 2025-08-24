@@ -1,12 +1,31 @@
+// export default function (fn) {
+//     return (req, res, next) => {
+//         fn(req, res, next).catch((err) => {
+//             console.error("Backend Error:", err);
+//             res.status(500).json({
+//                 success: false,
+//                 message: err.message || "Internal Server Error",
+//             });
+//         });
+//     };
+// }   
+
+
+
+
+
+
+
 export default function (fn) {
     return (req, res, next) => {
         fn(req, res, next).catch((err) => {
             console.error("Backend Error:", err);
-            res.status(500).json({
+
+            const status = err.statusCode || 500; 
+            res.status(status).json({
                 success: false,
                 message: err.message || "Internal Server Error",
             });
         });
     };
-}   
-    
+}
